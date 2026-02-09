@@ -1,0 +1,48 @@
+{
+  "app_name": "OneSec_Mindfulness",
+  "analysis_date": "2026-02-09",
+  "metrics": {
+    "total_reviews_90d": 29,
+    "negative_ratio": 0.138,
+    "volatility_slope": 0.0714,
+    "risk_score": 11.08
+  },
+  "signals": {
+    "broken_update_detected": true,
+    "suspected_version": "5.1",
+    "top_pain_categories": [
+      {
+        "category": "critical",
+        "count": 1,
+        "weight": 10
+      },
+      {
+        "category": "scam_financial",
+        "count": 1,
+        "weight": 8
+      },
+      {
+        "category": "subscription",
+        "count": 1,
+        "weight": 7
+      },
+      {
+        "category": "performance",
+        "count": 1,
+        "weight": 5
+      }
+    ],
+    "pillar_densities": {
+      "Functional": 0.5172,
+      "Economic": 0.5172,
+      "Experience": 0.0
+    },
+    "primary_pillar": "Functional"
+  },
+  "evidence": [
+    "I love the price and great privacy policy compared to other similar apps. There’s also so many features that other apps don’t have, specifically the main feature of adding an intervention to an app. T",
+    "I like this app in concept, i like the breathing feature and stuff. Theres just one problem. if i open an app and set it to only, 5 mins for example, it’ll stretch out WAY beyond that. on my last test",
+    "App blocking is buggy and inconsistent, especially if you want to lock your phone down and only get access to a few apps.\n\nCan only schedule blocks on a whole hour.\n\nDespite the fact that I paid for a",
+    "For once a reliable app that doesn’t cost a monthly fee lol"
+  ]
+}

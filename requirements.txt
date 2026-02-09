@@ -1,0 +1,18 @@
+# Core dependencies for App Store Volatility Analyzer
+# Python ETL pipeline for deterministic review analysis
+
+# Data processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# API client
+apify-client>=1.0.0
+
+# Retry logic for reliability
+tenacity>=8.2.0
+
+# Date/time handling
+python-dateutil>=2.8.0
+
+# JSON schema validation (optional but recommended)
+jsonschema>=4.17.0

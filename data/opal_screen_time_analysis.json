@@ -1,0 +1,54 @@
+{
+  "app_name": "Opal_Screen_Time",
+  "analysis_date": "2026-02-09",
+  "metrics": {
+    "total_reviews_90d": 255,
+    "negative_ratio": 0.263,
+    "volatility_slope": 0.544,
+    "risk_score": 42.14
+  },
+  "signals": {
+    "broken_update_detected": false,
+    "suspected_version": null,
+    "top_pain_categories": [
+      {
+        "category": "critical",
+        "count": 37,
+        "weight": 10
+      },
+      {
+        "category": "scam_financial",
+        "count": 16,
+        "weight": 8
+      },
+      {
+        "category": "subscription",
+        "count": 17,
+        "weight": 7
+      },
+      {
+        "category": "performance",
+        "count": 11,
+        "weight": 5
+      },
+      {
+        "category": "usability",
+        "count": 8,
+        "weight": 3
+      }
+    ],
+    "pillar_densities": {
+      "Functional": 1.6667,
+      "Economic": 0.9686,
+      "Experience": 0.0941
+    },
+    "primary_pillar": "Functional"
+  },
+  "evidence": [
+    "While I do think that blocking apps is an easy way to slowly cure my phone addiction, this app caused me too much stress due to its flaws. 👎🏼\nWhen I tried to block most of my apps, I obviously made an",
+    "This app has been really helpful in reducing my screen time. This is the first one that I’ve used that I’ve stuck with for more then a couple days. Some of my favorite features include the weekly scre",
+    "Yeah it’s been a couple weeks since I got this. It’s good because I have very little self control when it comes to doomscrolling but I still want the benifits that social media gives me. I tried using",
+    "I wanted to like this app, and when it’s working properly it’s great. However I’ve run across some issues, and customer service hasn’t been very helpful because they can only help you in a meaningful ",
+    "freezes my entire phone when it locks an app??????\n\n1) when I open the app it immediately goes into wait mode for a timer I have set up.\n\nLike, instead of opening into the homescreen it’ll have me see"
+  ]
+}

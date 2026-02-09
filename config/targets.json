@@ -1,0 +1,29 @@
+{
+  "apps": [
+    {
+      "name": "Opal_Screen_Time",
+      "url": "https://apps.apple.com/us/app/opal-screen-time-control/id1497465230"
+    },
+    {
+      "name": "Forest_Focus",
+      "url": "https://apps.apple.com/us/app/forest-focus-for-productivity/id866450515"
+    },
+    {
+      "name": "Freedom_Blocker",
+      "url": "https://apps.apple.com/us/app/freedom-screen-time-control/id1269788228"
+    },
+    {
+      "name": "StayFree_Tracker",
+      "url": "https://apps.apple.com/us/app/stayfree-block-apps-sites/id1631132311"
+    },
+    {
+      "name": "OneSec_Mindfulness",
+      "url": "https://apps.apple.com/us/app/one-sec-screen-time-focus/id1532875441"
+    }
+  ],
+  "params": {
+    "days_back": 90,
+    "max_reviews": 500,
+    "language": "en"
+  }
+}

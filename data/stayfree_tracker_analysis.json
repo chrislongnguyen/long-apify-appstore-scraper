@@ -1,0 +1,30 @@
+{
+  "app_name": "StayFree_Tracker",
+  "analysis_date": "2026-02-09",
+  "metrics": {
+    "total_reviews_90d": 4,
+    "negative_ratio": 0.25,
+    "volatility_slope": 0.0,
+    "risk_score": 7.5
+  },
+  "signals": {
+    "broken_update_detected": true,
+    "suspected_version": "3.2",
+    "top_pain_categories": [
+      {
+        "category": "usability",
+        "count": 1,
+        "weight": 3
+      }
+    ],
+    "pillar_densities": {
+      "Functional": 0.0,
+      "Economic": 0.0,
+      "Experience": 0.75
+    },
+    "primary_pillar": "Experience"
+  },
+  "evidence": [
+    "I absolutely adore the chrome extension it's one of the only things that's helped me get off my computer, so I decided to download it for my phone too! But I think it would work incredibly if it had a"
+  ]
+}

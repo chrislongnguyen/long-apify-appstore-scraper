@@ -1,0 +1,24 @@
+{
+  "categories": {
+    "critical": {
+      "keywords": ["crash", "freeze", "broken", "error", "bug", "glitch", "đơ", "lỗi", "sập"],
+      "weight": 10
+    },
+    "scam_financial": {
+      "keywords": ["scam", "fraud", "steal", "money", "charge", "refund", "lừa đảo", "tiền", "phí"],
+      "weight": 8
+    },
+    "subscription": {
+      "keywords": ["subscription", "cancel", "billing", "charge", "auto-renew", "đăng ký", "hủy", "thanh toán"],
+      "weight": 7
+    },
+    "performance": {
+      "keywords": ["slow", "lag", "freeze", "loading", "timeout", "chậm", "đơ", "tải"],
+      "weight": 5
+    },
+    "usability": {
+      "keywords": ["confusing", "complicated", "hard", "difficult", "khó", "phức tạp", "không hiểu"],
+      "weight": 3
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "filters": {
+    "min_star_rating": 1,
+    "min_review_length_words": 3,
+    "drop_generic_5_star": true,
+    "force_fetch_count": 500
+  },
+  "weights": {
+    "slope_impact": 20.0,
+    "volume_impact": 0.5,
+    "critical_keyword": 10.0,
+    "scam_keyword": 8.0,
+    "performance_keyword": 5.0,
+    "ux_keyword": 2.0
+  },
+  "processing": {
+    "enable_smoke_test": false,
+    "days_back_default": 90
+  }
+}

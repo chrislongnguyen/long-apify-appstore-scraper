@@ -1,0 +1,54 @@
+{
+  "app_name": "Forest_Focus",
+  "analysis_date": "2026-02-09",
+  "metrics": {
+    "total_reviews_90d": 163,
+    "negative_ratio": 0.442,
+    "volatility_slope": -0.4848,
+    "risk_score": 45.77
+  },
+  "signals": {
+    "broken_update_detected": true,
+    "suspected_version": "5.1.3",
+    "top_pain_categories": [
+      {
+        "category": "subscription",
+        "count": 48,
+        "weight": 7
+      },
+      {
+        "category": "scam_financial",
+        "count": 26,
+        "weight": 8
+      },
+      {
+        "category": "critical",
+        "count": 17,
+        "weight": 10
+      },
+      {
+        "category": "performance",
+        "count": 4,
+        "weight": 5
+      },
+      {
+        "category": "usability",
+        "count": 4,
+        "weight": 3
+      }
+    ],
+    "pillar_densities": {
+      "Functional": 1.1656,
+      "Economic": 3.3374,
+      "Experience": 0.0736
+    },
+    "primary_pillar": "Economic"
+  },
+  "evidence": [
+    "So I initially agreed with everyone complaining that we paid for the app so there should be no subscription model, but after using the app for a few days... \n1) Users are lying about being forced to s",
+    "I’m really upset because about two months after I paid to download this app, multiple core features were removed and are now locked behind a monthly subscription.\n\nI have no issue with the app introdu",
+    "I've been a Forest user since 2022, ever since they had the limited BTS TinyTan trees. I loved this app, and happily paid for the triple coin elixir regularly. It was $2, and helped me buy cute trees ",
+    "I have used Forest for yearsssss. I love it. It has helped me so much. But I must say, it leaves a bitter taste in my mouth to see them pushing a subscription model now. It’s instant frustration when ",
+    "I got this app about 3 years ago and everything was smooth sailing and great. This new update that just came out … I’m NOT a big fan of . I paid for this app -as everyone did- but now why do we have t"
+  ]
+}

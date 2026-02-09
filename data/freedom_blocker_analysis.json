@@ -1,0 +1,44 @@
+{
+  "app_name": "Freedom_Blocker",
+  "analysis_date": "2026-02-09",
+  "metrics": {
+    "total_reviews_90d": 39,
+    "negative_ratio": 0.179,
+    "volatility_slope": 0.0833,
+    "risk_score": 19.44
+  },
+  "signals": {
+    "broken_update_detected": true,
+    "suspected_version": "6.59",
+    "top_pain_categories": [
+      {
+        "category": "scam_financial",
+        "count": 5,
+        "weight": 8
+      },
+      {
+        "category": "subscription",
+        "count": 3,
+        "weight": 7
+      },
+      {
+        "category": "usability",
+        "count": 3,
+        "weight": 3
+      }
+    ],
+    "pillar_densities": {
+      "Functional": 0.0,
+      "Economic": 1.5641,
+      "Experience": 0.2308
+    },
+    "primary_pillar": "Economic"
+  },
+  "evidence": [
+    "Don’t pay for lifetime. Works once and then it’s impossible to login using any browser. does not work with Windows anymore. pointless and I can’t get a refund. like I said utter garbage. I’m going to ",
+    "I love it. Tried the free trial for 3 days and was like “PLEASE TAKE MY MONEY!” Nothing else worked-I just would override all the other functions I’d put in place to keep me off social media, and I lo",
+    "They now charge you more money ($39/year) if you need sessions longer than 2 hours. I loved this app, but it sold out  to be just like the rest of the blocking apps. I’ll save myself the money and go ",
+    "If you’ve a victim of doomscrolling and have no self control like me, then you need this app bc it make it harder for me to access my social media and shopping apps that distract me for hours from the",
+    "Signed up for the free trial. Canceled before the free trial end date and was still charged for a year. I never even used the app as it was too complicated. Don’t fall for it."
+  ]
+}

@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Project specific
+*.json.bak
+reports/
+# Allow data/ directory but exclude sensitive files
+data/*.env
+data/*.key
+data/*.token
+data/*secret*
+schema_app_gap.json
+config/targets.json.local
+# Sensitive files (API keys, tokens, secrets)
+*.env
+*.key
+*.token
+*secret*
+*password*
+*apify*.local
+
+# Logs
+*.log

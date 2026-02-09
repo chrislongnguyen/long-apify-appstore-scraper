@@ -1,0 +1,32 @@
+{
+  "app_name": "Instagram",
+  "analysis_date": "2026-02-09",
+  "metrics": {
+    "total_reviews_90d": 25,
+    "negative_ratio": 0.0,
+    "volatility_slope": 0.0,
+    "risk_score": 16.0
+  },
+  "signals": {
+    "broken_update_detected": false,
+    "suspected_version": null,
+    "top_pain_categories": [
+      {
+        "category": "scam_financial",
+        "count": 1,
+        "weight": 8
+      },
+      {
+        "category": "performance",
+        "count": 1,
+        "weight": 5
+      },
+      {
+        "category": "usability",
+        "count": 1,
+        "weight": 3
+      }
+    ]
+  },
+  "evidence": []
+}
