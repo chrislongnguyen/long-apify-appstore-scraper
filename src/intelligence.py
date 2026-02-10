@@ -48,6 +48,16 @@ class ForensicAnalyzer:
         "generic_pain": "Experience",
     }
 
+    # T-023: Domain vocabulary for Whale detection (> 40 words OR contains these)
+    WHALE_DOMAIN_VOCAB = {
+        "latency", "vector", "workflow", "pipeline", "integration", "api",
+        "batch", "export", "sync", "sync failed", "credits", "quota",
+        "render", "export", "4k", "resolution", "frame rate",
+    }
+
+    # T-023: Whale multiplier for Pain Density (3x weight)
+    WHALE_MULTIPLIER = 3.0
+
     # Common stop words for N-Gram filtering
     STOP_WORDS = {
         "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
@@ -119,6 +129,26 @@ class ForensicAnalyzer:
                     return True
         return False
 
+    def _is_whale_review(self, text: str) -> bool:
+        """
+        T-023: Whale detection - high-value reviews (long or domain-specific).
+
+        Returns True if review has > 40 words OR contains domain vocabulary.
+        """
+        if not text or not isinstance(text, str):
+            return False
+        text_lower = text.lower()
+        word_count = len(text_lower.split())
+        if word_count > 40:
+            return True
+        return any(vocab in text_lower for vocab in self.WHALE_DOMAIN_VOCAB)
+
+    def _get_pain_weight(self, has_pain: bool, is_whale: bool) -> float:
+        """T-023: Return pain contribution (1.0 or WHALE_MULTIPLIER for whale reviews)."""
+        if not has_pain:
+            return 0.0
+        return self.WHALE_MULTIPLIER if is_whale else 1.0
+
     def detect_event_timeline(
         self,
         reviews_df: pd.DataFrame,
@@ -148,12 +178,27 @@ class ForensicAnalyzer:
 
         # Mark reviews with pain keywords
         df["has_pain"] = df["text"].apply(self._has_pain_keyword)
+        # T-023: Whale-adjusted pain weight for density (3x for whale reviews)
+        df["is_whale"] = df["text"].apply(self._is_whale_review)
+        df["pain_weight"] = df.apply(
+            lambda r: self._get_pain_weight(r["has_pain"], r["is_whale"]), axis=1
+        )
+
+        # T-022: Keep copy with version for Named Spike correlation
+        cols = ["date", "text"]
+        if "version" in df.columns:
+            cols.append("version")
+        df_with_version = df[cols].copy()
+        if "version" not in df_with_version.columns:
+            df_with_version["version"] = ""
+        df_with_version["version"] = df_with_version["version"].fillna("").astype(str)
 
         # Resample by week (W-MON for ISO week start)
+        # T-023: Use pain_weight (whale-adjusted) instead of raw pain_count for density
         df = df.set_index("date")
         weekly = df.resample("W-MON").agg(
             total=("text", "count"),
-            pain_count=("has_pain", "sum"),
+            pain_count=("pain_weight", "sum"),
         )
         weekly = weekly[weekly["total"] >= min_reviews_per_week]
         if len(weekly) < 2:
@@ -162,7 +207,7 @@ class ForensicAnalyzer:
         weekly["density"] = weekly["pain_count"] / weekly["total"]
         weekly["week_str"] = weekly.index.strftime("%Y-%W")
 
-        # Rolling mean and std for anomaly detection
+        # Rolling mean and std for anomaly detection (μ + 2σ)
         weekly["rolling_mean"] = weekly["density"].rolling(window=min(4, len(weekly)), min_periods=1).mean()
         weekly["rolling_std"] = weekly["density"].rolling(window=min(4, len(weekly)), min_periods=1).std().fillna(0)
         threshold = weekly["rolling_mean"] + 2 * weekly["rolling_std"]
@@ -170,15 +215,64 @@ class ForensicAnalyzer:
 
         result = []
         for idx, row in weekly.iterrows():
-            event = "Critical Spike" if row["is_anomaly"] else None
-            result.append({
+            event = None
+            version_label = None
+            if row["is_anomaly"]:
+                # T-022: Named Spike - find most frequent version in this week's window
+                version_label = self._name_spike(idx, df_with_version)
+                if version_label:
+                    event = f"The Version {version_label} Spike"
+                else:
+                    event = "Critical Spike"
+
+            entry = {
                 "week": row["week_str"],
                 "density": round(float(row["density"]), 4),
                 "total": int(row["total"]),
                 "pain_count": int(row["pain_count"]),
                 "event": event,
-            })
+            }
+            if version_label:
+                entry["version"] = version_label
+            result.append(entry)
         return result
+
+    def _name_spike(self, week_start: pd.Timestamp, df: pd.DataFrame) -> Optional[str]:
+        """
+        T-022: Named Spike Correlation.
+
+        For an anomaly week, search reviews in that window for the most frequent
+        'version' string. Returns the version label for "The Version [X] Spike".
+
+        Args:
+            week_start: Week start Timestamp (Monday)
+            df: DataFrame with date, version columns
+
+        Returns:
+            Most frequent version string, or None if no version data
+        """
+        if df.empty or "version" not in df.columns:
+            return None
+
+        week_end = week_start + pd.Timedelta(days=7)
+        mask = (df["date"] >= week_start) & (df["date"] < week_end)
+        week_reviews = df.loc[mask]
+
+        if week_reviews.empty:
+            return None
+
+        versions = week_reviews["version"].replace("", np.nan).dropna()
+        if len(versions) == 0:
+            return None
+
+        # Most frequent version
+        vc = versions.astype(str).value_counts()
+        if vc.empty:
+            return None
+        top_version = vc.index[0]
+        if not top_version or top_version == "nan":
+            return None
+        return str(top_version)
 
     def extract_semantic_clusters(
         self,

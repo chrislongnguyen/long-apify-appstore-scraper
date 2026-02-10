@@ -39,8 +39,10 @@ def test_analyzer():
         print(f"✗ Analyzer initialization failed: {e}")
         return False
     
-    # Load sample reviews
-    reviews_file = data_dir / "instagram_reviews.json"
+    # Load sample reviews (try niche subdir first, then root)
+    reviews_file = data_dir / "digitaldetox" / "instagram_reviews.json"
+    if not reviews_file.exists():
+        reviews_file = data_dir / "instagram_reviews.json"
     if not reviews_file.exists():
         print(f"✗ Reviews file not found: {reviews_file}")
         print("  Run: python main.py --smoke-test first")
@@ -79,6 +81,8 @@ def test_analyzer():
         print(f"  Top Pain Categories: {len(analysis['signals']['top_pain_categories'])}")
         for cat in analysis['signals']['top_pain_categories'][:3]:
             print(f"    - {cat['category']}: {cat['count']} reviews (weight: {cat['weight']})")
+        print(f"  Monthly Leakage (Fermi): ${analysis['signals'].get('monthly_leakage_usd', 0):.2f}")
+        print(f"  Slope Delta: {analysis['signals'].get('slope_delta')} | {analysis['signals'].get('slope_delta_insight')}")
         print(f"\nEvidence Samples: {len(analysis['evidence'])}")
         
         # Verify schema structure
@@ -98,7 +102,7 @@ def test_analyzer():
         print("✓ PASS: Schema structure is correct")
         
         # Save test output
-        test_output = data_dir / "instagram_analysis_test.json"
+        test_output = data_dir / "digitaldetox" / "instagram_analysis_test.json"
         analyzer.save_analysis(analysis, test_output)
         print(f"✓ Saved test analysis to {test_output}")
         

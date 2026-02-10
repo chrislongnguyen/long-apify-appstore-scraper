@@ -1,13 +1,37 @@
 {
-  "niche_name": "Tattoo_AI",
+  "niche_name": "Fasting_Trackers",
+  "niche_category": "Utility",
   "apps": [
-    {"name": "Tattoo_AI_Design", "url": "https://apps.apple.com/us/app/tattoo-ai-tattoo-design/id6479689893"},
-    {"name": "Ai_Tattoo_Ideas_Art", "url": "https://apps.apple.com/us/app/ai-tattoo-ideas-art-generator/id6593679852"},
-    {"name": "Tattoo_AI_Design_HubX", "url": "https://apps.apple.com/us/app/tattoo-ai-tattoo-design/id6479689893"},
-    {"name": "AI_Ink_Tattoo_Gen", "url": "https://apps.apple.com/us/app/ai-ink-ai-tattoo-generator/id6478388353"},
-    {"name": "Tattoo_AI_Design_Gen", "url": "https://apps.apple.com/us/app/tattoo-ai-tattoo-design-generator-ink/id6736713334"},
-    {"name": "Tattoo_Ai_Art_Maker", "url": "https://apps.apple.com/us/app/tattoo-ai-art-maker/id1673771187"},
-    {"name": "Ink_AI_Design_Gen", "url": "https://apps.apple.com/us/app/ink-ai-tattoo-design-generator/id6736651465"}
+    {
+      "name": "Zero_Fasting_Health",
+      "url": "https://apps.apple.com/us/app/zero-fasting-food-tracker/id1168348542",
+      "price": 9.99
+    },
+    {
+      "name": "Fastic_Intermittent_Fasting",
+      "url": "https://apps.apple.com/us/app/fastic-weight-loss-fasting/id1459260306",
+      "price": 12.99
+    },
+    {
+      "name": "BodyFast_Intermittent_Fasting",
+      "url": "https://apps.apple.com/us/app/bodyfast-intermittent-fasting/id1189568780",
+      "price": 16.99
+    },
+    {
+      "name": "Leap_Fasting_Tracker",
+      "url": "https://apps.apple.com/us/app/fasting-intermittent-fasting/id1498018285",
+      "price": 19.99
+    },
+    {
+      "name": "Window_Fasting_Tracker",
+      "url": "https://apps.apple.com/us/app/window-intermittent-fasting/id1112765909",
+      "price": 9.99
+    }
   ],
-  "params": {"days_back": 90, "max_reviews": 500, "language": "en"}
+  "params": {
+    "days_back": 90,
+    "max_reviews": 500,
+    "language": "en",
+    "country": "us"
+  }
 }

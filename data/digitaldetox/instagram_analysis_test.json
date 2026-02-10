@@ -1,32 +1,39 @@
 {
   "app_name": "Instagram",
-  "analysis_date": "2026-02-09",
+  "analysis_date": "2026-02-10",
   "metrics": {
     "total_reviews_90d": 25,
-    "negative_ratio": 0.0,
+    "negative_ratio": 0.08,
     "volatility_slope": 0.0,
-    "risk_score": 16.0
+    "risk_score": 3.6
   },
   "signals": {
-    "broken_update_detected": false,
-    "suspected_version": null,
+    "broken_update_detected": true,
+    "suspected_version": "415.1.0",
     "top_pain_categories": [
-      {
-        "category": "scam_financial",
-        "count": 1,
-        "weight": 8
-      },
       {
         "category": "performance",
         "count": 1,
         "weight": 5
       },
       {
-        "category": "usability",
-        "count": 1,
-        "weight": 3
+        "category": "generic_pain",
+        "count": 2,
+        "weight": 2
       }
-    ]
+    ],
+    "pillar_densities": {
+      "Functional": 0.2,
+      "Economic": 0.0,
+      "Experience": 0.16
+    },
+    "primary_pillar": "Functional",
+    "monthly_leakage_usd": 999.0,
+    "slope_delta": null,
+    "slope_delta_insight": null
   },
-  "evidence": []
+  "evidence": [
+    "I’ve had a instagram account for years and never really used it. I was really into tiktok for the past few years but after getting multiple accounts banned I finally had enough with that app. I was sc",
+    "If there were more people that could understand this and do something about it maybe there would be a change and make And as much as hate to say this, maybe we should nationalize troops on our borders"
+  ]
 }

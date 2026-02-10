@@ -7,10 +7,10 @@ last_updated: 2026-02-10
 
 # QUICK STATUS SUMMARY
 
-**Current Phase:** Phase 6 (The Architect)  
-**Overall Progress:** Phases 1-5 Complete; Phase 6 Active  
-**Next Task:** T-020 (Integrate Reddit) or T-023 (Build AI Client) — no deps  
-**Status:** ✅ Phases 1-5 Complete → 🚧 Phase 6 In Progress
+**Current Phase:** Phase 6 (Predictive Analytics)  
+**Overall Progress:** Phases 1-5 Complete; Phase 6 Pending  
+**Next Task:** T-020 (Fermi Estimator Module) — no deps  
+**Status:** ✅ Phases 1-5 Complete → 🚧 Phase 6 at 0%
 
 **Recent Achievements (2026-02-10):**
 - ✅ T-016 to T-019: Niche dirs, White Space, Migration refinement, Forensic tests
@@ -71,14 +71,21 @@ last_updated: 2026-02-10
 | **T-018** | **Refine Migration** | *Accurately* (Strict Regex) | **Low (2)** | ✅ Done |
 | **T-019** | **Forensic Unit Tests** | *Robustly* (Pytest) | **Med (3)** | ✅ Done |
 
-## PHASE 6: THE ARCHITECT (Generative & Prescriptive)
+## PHASE 6: PREDICTIVE ANALYTICS
 | ID | Task (Verb) | Target Outcome (Adverb) | Risk Factor | Deps |
 | :--- | :--- | :--- | :--- | :--- |
-| **T-020** | **Integrate Reddit** | *Broadly* (Fetch Feature Requests) | **Med (5)** | None |
-| **T-021** | **Detect Whales** | *Surgically* (Filter via Heuristics) | **Low (2)** | T-006 |
-| **T-022** | **Calc Revenue Leak** | *Financially* (Fermi Estimation) | **Low (3)** | T-021 |
-| **T-023** | **Build AI Client** | *Securely* (Gemini/OpenAI Wrapper) | **Med (4)** | None |
-| **T-024** | **Gen Anti-Roadmap** | *Creatively* (LLM Prompt Engineering) | **High (8)** | T-020, T-023 |
+| **T-020** | **Fermi Estimator Module** | *Financially* (Implement src/analyzer.py logic for Fermi Math and Dynamic Multipliers) | **Med (5)** | None |
+| **T-021** | **Trend Acceleration (Delta)** | *Mathematically* (Calculate Slope T1 vs T2 in Analyzer) | **Med (4)** | T-006 |
+| **T-022** | **Named Spike Correlation** | *Narratively* (Update ForensicAnalyzer to link anomalies to app version metadata) | **Med (4)** | T-008 |
+| **T-023** | **Whale Detector Logic** | *Surgically* (Implement the 40-word filter and domain-vocab multiplier) | **Low (2)** | T-006 |
+| **T-024** | **Predictive Integration** | *Holistically* (Update main.py and Reporter to include the new metrics in Markdown/JSON outputs) | **Med (5)** | T-020, T-021, T-022, T-023 |
+
+## PHASE 7: THE ARCHITECT (Generative & Prescriptive) — *DEFERRED / PLANNED*
+| ID | Task (Verb) | Target Outcome (Adverb) | Risk Factor | Deps |
+| :--- | :--- | :--- | :--- | :--- |
+| **T-025** | **Integrate Reddit** | *Broadly* (Fetch Feature Requests) | **Med (5)** | None |
+| **T-026** | **Build AI Client** | *Securely* (Gemini/OpenAI Wrapper) | **Med (4)** | None |
+| **T-027** | **Gen Anti-Roadmap** | *Creatively* (LLM Prompt Engineering) | **High (8)** | T-025, T-026 |
 
 ---
 
@@ -116,9 +123,94 @@ last_updated: 2026-02-10
 
 ---
 
-## 3.1 Phase 6: Detailed Specifications
+## 3.1 Phase 6: Detailed Specifications (Predictive Analytics)
 
-### T-024: Generate Anti-Roadmap (Invert Pain → User Stories)
+### T-020: Fermi Estimator Module
+
+* **User Story:** As a Venture Architect, I want to quantify monthly revenue leakage from churn signals so I can prioritize high-value opportunities.
+
+* **Fermi Formula:**
+  $$Leakage = (Churn\_Reviews \times Multiplier) \times Price$$
+
+* **Inputs:**
+  * `Churn_Reviews`: Count of reviews with "Economic" or "Functional" pain pillars (from `schema_app_gap.top_pain_categories`).
+  * `Price`: From `targets.json` (app.price) or default $9.99.
+  * `Multiplier`: Dynamic ratio from `targets.json` (niche_category): B2B=50, Consumer=100, Games=200+.
+
+* **Output:** `Monthly_Leakage_USD` (float) — add to `schema_app_gap.signals` or forensic intelligence JSON.
+
+* **Acceptance Criteria:**
+  * Logic implemented in `src/analyzer.py`.
+  * Multiplier configurable via `targets.json`.
+
+### T-021: Trend Acceleration (Delta)
+
+* **User Story:** As a Founder, I want to know if competitor decline is accelerating or stabilizing.
+
+* **Logic:**
+  * **Slope_T1:** Linear regression (Last 4 weeks) of negative review volume vs time.
+  * **Slope_T2:** Linear regression (Weeks 5–8) of negative review volume vs time.
+  * **Δm:** Slope_T1 − Slope_T2.
+
+* **Output:** Δm value + insight string: "Acceleration Detected: +15% week-over-week" or "Stabilizing: -8% week-over-week."
+
+* **Acceptance Criteria:**
+  * Implemented in `src/analyzer.py`.
+  * Output included in `schema_app_gap.metrics` or `signals`.
+
+### T-022: Named Spike Correlation
+
+* **User Story:** As a Founder, I want anomaly weeks linked to specific app versions so I can create marketing headlines (e.g., "The Version 4.2 Crash").
+
+* **Correlation Logic:**
+  * **Input:** Week_Anomaly (PainDensity > μ + 2σ) + `reviews_df` with `version` metadata.
+  * **Logic:** Correlate anomaly week with version strings present in that week's reviews. Assign narrative label.
+  * **Fallback:** If no version data, use dominant topic cluster from N-Grams.
+
+* **Output:** `{week: "2023-42", label: "The Version 4.2 Crash", version: "4.2"}` — append to `reports/{niche}/{app}_intelligence.json` timeline events.
+
+* **Acceptance Criteria:**
+  * Update `ForensicAnalyzer` with `name_spike(anomaly_week, reviews_df)` method.
+  * Named spikes appear in forensic intelligence JSON and report Markdown.
+
+### T-023: Whale Detector Logic
+
+* **User Story:** As a Product Detective, I want high-value reviews (long, domain-specific) weighted more heavily for opportunity signals.
+
+* **Logic:**
+  * **Filter:** Reviews with length > 40 words OR domain vocabulary match.
+  * **Multiplier:** 3x–5x weight for evidence prioritization.
+
+* **Acceptance Criteria:**
+  * Implement 40-word filter and domain-vocab heuristic.
+  * Whale-boosted evidence used in evidence ranking and future Architect prompts.
+
+### T-024: Predictive Integration
+
+* **User Story:** As a User, I want all new Predictive metrics (Fermi, Δm, Named Spikes) visible in reports and JSON outputs.
+
+* **Requirements:**
+  * Update `main.py` to invoke FermiEstimator, SlopeDeltaCalculator, and pass Named Spikes to Reporter.
+  * Update `Reporter` to include Δm, Monthly_Leakage_USD, and Named Spike labels in Markdown reports.
+  * Ensure `schema_app_gap` and forensic intelligence JSON include all new fields.
+
+* **Acceptance Criteria:**
+  * Individual and Niche reports show new metrics.
+  * JSON artifacts are schema-complete.
+
+---
+
+## 3.2 Phase 7: The Architect (Deferred / Planned)
+
+### T-025: Integrate Reddit
+* **User Story:** As a Venture Architect, I want Feature Requests and Alternatives from Reddit to complement App Store pain signals.
+* **Action:** Create `src/fetcher_reddit.py`; adapter for `apify/reddit-scraper`. Subreddit derived from `niche_name`.
+
+### T-026: Build AI Client
+* **User Story:** As a Developer, I need a secure LLM wrapper for text synthesis (User Stories only).
+* **Action:** Create `src/ai_client.py`; Gemini/OpenAI wrapper. Config-driven via `settings.json` or env vars.
+
+### T-027: Generate Anti-Roadmap (Invert Pain → User Stories)
 
 * **User Story:** As a Venture Architect, I want pain clusters from App Store reviews (and Reddit) inverted into actionable User Stories so I can build a prioritized MVP roadmap without bias.
 
@@ -140,7 +232,7 @@ last_updated: 2026-02-10
    * **Structure:**
      * Executive Summary (1–2 sentences: niche focus, high-priority gaps).
      * Prioritized User Stories (ranked by evidence volume + Whale multiplier).
-     * Revenue Leakage Estimate (if available from T-022).
+     * Revenue Leakage Estimate (if available from T-020).
      * Reddit-Informed Additions (feature requests from Reddit not in App Store data).
 
 4. **LLM Provider:** Gemini (primary) or OpenAI (fallback). Use `ai_client.py` wrapper; no math/stats in LLM.
@@ -156,7 +248,7 @@ last_updated: 2026-02-10
 | Metric | Current Usage | Hard Limit | Status |
 | :--- | :--- | :--- | :--- |
 | **Financial Cost (Apify)** | ~$0.05 | $5.00 | 🟢 Safe |
-| **LLM API Costs** | TBD (Phase 6) | $5.00 | ⏳ Placeholder |
+| **LLM API Costs** | TBD (Phase 7) | $5.00 | ⏳ Placeholder |
 | **API Calls** | ~8 successful runs | N/A | 🟢 Safe |
 | **Reviews Fetched** | ~300+ reviews | N/A | 🟢 Safe |
 
@@ -164,11 +256,11 @@ last_updated: 2026-02-10
 
 # 5. NEXT ACTIONS (Phase 6 Execution)
 
-1.  **Execute T-020 (Integrate Reddit):** Create `src/fetcher_reddit.py`; adapter for `apify/reddit-scraper`.
-2.  **Execute T-023 (Build AI Client):** Create `src/ai_client.py`; Gemini/OpenAI wrapper for text synthesis.
-3.  **Execute T-021 (Detect Whales):** Add heuristic to `Architect`; filter reviews with length > 40 words or domain vocab.
-4.  **Execute T-022 (Calc Revenue Leak):** Add Fermi estimation formula to `Architect`.
-5.  **Execute T-024 (Gen Anti-Roadmap):** Implement prompt strategy; output `roadmap_mvp.md`.
+1.  **Execute T-020 (Fermi Estimator Module):** Implement Fermi formula and dynamic multipliers in `src/analyzer.py`.
+2.  **Execute T-021 (Trend Acceleration):** Add SlopeDeltaCalculator (Slope T1 vs T2) in Analyzer.
+3.  **Execute T-022 (Named Spike Correlation):** Update ForensicAnalyzer with `name_spike()` to link anomalies to version metadata.
+4.  **Execute T-023 (Whale Detector Logic):** Implement 40-word filter and domain-vocab multiplier.
+5.  **Execute T-024 (Predictive Integration):** Wire new metrics into main.py and Reporter; update Markdown/JSON outputs.
 
 ---
 
@@ -178,5 +270,6 @@ last_updated: 2026-02-10
 - **Phase 1-3:** 100% ✅
 - **Phase 4:** 100% ✅ (T-008 Complete)
 - **Phase 5:** 100% ✅ (T-016 to T-019 Complete)
-- **Phase 6:** 0% 🚧 (T-020 to T-024 pending)
+- **Phase 6 (Predictive Analytics):** 0% 🚧 (T-020 to T-024 pending)
+- **Phase 7 (The Architect):** Deferred / Planned (T-025 to T-027)
 

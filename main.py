@@ -131,10 +131,19 @@ def main():
             # Analyze reviews (T-006, T-007: Calc Logic & Score Risk)
             if filtered_reviews:
                 print(f"\nAnalyzing {len(filtered_reviews)} reviews...")
+                # T-020: Pass app_config for Fermi (price, niche_category from targets)
+                app_config = {}
+                if "price" in app:
+                    app_config["price"] = app["price"]
+                if "niche_category" in app:
+                    app_config["niche_category"] = app["niche_category"]
+                elif targets_config.get("niche_category"):
+                    app_config["niche_category"] = targets_config["niche_category"]
                 analysis = analyzer.analyze(
                     reviews=filtered_reviews,
                     app_name=app["name"],
-                    days_back=params["days_back"]
+                    days_back=params["days_back"],
+                    app_config=app_config if app_config else None,
                 )
                 
                 # Save analysis results (schema_app_gap.json)

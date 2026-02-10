@@ -13,6 +13,27 @@ import numpy as np
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# T-020: Fermi multipliers by niche category (Design §3.2)
+FERMI_MULTIPLIERS = {
+    "b2b": 50,
+    "saas": 50,
+    "utility": 100,
+    "consumer": 100,
+    "game": 200,
+    "games": 200,
+    "viral": 200,
+}
+DEFAULT_FERMI_MULTIPLIER = 100
+DEFAULT_PRICE_USD = 9.99
+
+# T-023: Whale detector (Design §4.5)
+WHALE_MULTIPLIER = 3.0
+WHALE_DOMAIN_VOCAB = {
+    "latency", "vector", "workflow", "pipeline", "integration", "api",
+    "batch", "export", "sync", "credits", "quota", "render", "4k",
+    "resolution", "frame rate",
+}
+
 
 class Analyzer:
     """
@@ -155,6 +176,71 @@ class Analyzer:
             logger.warning(f"Slope calculation failed: {e}. Returning 0.0")
             return 0.0
     
+    def calculate_slope_delta(self, df: pd.DataFrame) -> tuple[Optional[float], Optional[str]]:
+        """
+        T-021: Slope Delta (Δm) - detect if enshittification is accelerating.
+        
+        Compares Slope(Last 4 Weeks) vs Slope(Previous 4 Weeks).
+        Δm = Slope_T1 - Slope_T2
+        - Positive Δm: Accelerating decline
+        - Negative Δm: Stabilizing
+        
+        Args:
+            df: Filtered reviews DataFrame with date column
+            
+        Returns:
+            Tuple of (delta_m, insight_str) or (None, None) if insufficient data
+        """
+        if df.empty or "date" not in df.columns:
+            return None, None
+        
+        has_pain = self._identify_pain_keyword_reviews(df)
+        pain_df = df[has_pain].copy()
+        
+        if len(pain_df) < 2:
+            return None, None
+        
+        if not pd.api.types.is_datetime64_any_dtype(pain_df["date"]):
+            pain_df["date"] = pd.to_datetime(pain_df["date"], errors="coerce", utc=True)
+        pain_df = pain_df.dropna(subset=["date"]).set_index("date")
+        
+        weekly = pain_df.resample("W").size()
+        
+        if len(weekly) < 8:
+            logger.warning(f"Insufficient weeks ({len(weekly)}) for slope delta; need 8")
+            return None, None
+        
+        # Last 8 weeks: [0]=oldest ... [7]=most recent
+        last_8 = weekly.iloc[-8:].values
+        
+        # Slope_T1: last 4 weeks (indices 4,5,6,7)
+        # Slope_T2: previous 4 weeks (indices 0,1,2,3)
+        counts_t1 = last_8[-4:]
+        counts_t2 = last_8[:4]
+        
+        try:
+            x = np.arange(4)
+            slope_t1, _ = np.polyfit(x, counts_t1, deg=1)
+            slope_t2, _ = np.polyfit(x, counts_t2, deg=1)
+            delta_m = float(slope_t1 - slope_t2)
+            
+            # Percentage change for insight (avoid div by zero)
+            abs_t2 = abs(slope_t2) if slope_t2 != 0 else 0.01
+            pct = (delta_m / abs_t2) * 100 if abs_t2 else 0
+            
+            if delta_m > 0:
+                insight = f"Acceleration Detected: +{pct:.1f}% week-over-week"
+            elif delta_m < 0:
+                insight = f"Stabilizing: {pct:.1f}% week-over-week"
+            else:
+                insight = "Flat: No acceleration or deceleration"
+            
+            logger.info(f"Slope Delta: T1={slope_t1:.4f}, T2={slope_t2:.4f}, Δm={delta_m:.4f} -> {insight}")
+            return round(delta_m, 4), insight
+        except (np.linalg.LinAlgError, ValueError) as e:
+            logger.warning(f"Slope delta calculation failed: {e}")
+            return None, None
+    
     def _identify_pain_keyword_reviews(self, df: pd.DataFrame) -> pd.Series:
         """
         Identify reviews that contain any pain keywords (T-011: Redefine "negative").
@@ -245,6 +331,89 @@ class Analyzer:
         logger.info(f"Keyword density calculated: {sum(category_counts.values())} total matches across {len(category_counts)} categories")
         
         return category_counts
+    
+    def _is_whale_review(self, text: str) -> bool:
+        """
+        T-023: Whale detection - high-value reviews (long or domain-specific).
+
+        Returns True if review has > 40 words OR contains domain vocabulary.
+        """
+        if not text or not isinstance(text, str):
+            return False
+        text_lower = text.lower()
+        word_count = len(text_lower.split())
+        if word_count > 40:
+            return True
+        return any(vocab in text_lower for vocab in WHALE_DOMAIN_VOCAB)
+
+    def _get_churn_review_count(self, df: pd.DataFrame) -> int:
+        """
+        T-020: Count reviews with Economic or Functional pain pillars (churn signals).
+        
+        Used for Fermi revenue leakage estimation.
+        
+        Args:
+            df: Reviews DataFrame with text column
+            
+        Returns:
+            Count of unique reviews matching any Economic or Functional category
+        """
+        economic_categories = {"scam_financial", "subscription", "broken_promise", "ads"}
+        functional_categories = {"critical", "performance", "privacy", "ai_quality"}
+        churn_categories = economic_categories | functional_categories
+        
+        if df.empty or not self.pain_keywords or "categories" not in self.pain_keywords:
+            return 0
+        
+        if "text" not in df.columns:
+            return 0
+        
+        if "title" in df.columns:
+            combined_text = (df["title"].fillna("") + " " + df["text"].fillna("")).str.lower()
+        else:
+            combined_text = df["text"].fillna("").str.lower()
+        
+        # Build pattern for churn categories only
+        all_keywords = []
+        for cat_name, cat_data in self.pain_keywords["categories"].items():
+            if cat_name in churn_categories:
+                keywords = cat_data.get("keywords", [])
+                all_keywords.extend([kw.lower() for kw in keywords])
+        
+        if not all_keywords:
+            return 0
+        
+        escaped = [re.escape(kw) for kw in all_keywords]
+        pattern = "|".join(escaped)
+        has_churn = combined_text.str.contains(pattern, case=False, na=False, regex=True)
+        return int(has_churn.sum())
+    
+    def estimate_revenue_leakage(
+        self,
+        churn_reviews: int,
+        price: float = DEFAULT_PRICE_USD,
+        niche_category: Optional[str] = None,
+    ) -> float:
+        """
+        T-020: Fermi-style estimation of monthly revenue leakage.
+        
+        Formula: Leakage = (Churn_Reviews * Multiplier) * Price
+        
+        Args:
+            churn_reviews: Count of reviews with Economic or Functional pain pillars
+            price: App price or IAP average (default $9.99)
+            niche_category: Category from targets.json: b2b, utility, consumer, game, etc.
+            
+        Returns:
+            Estimated monthly leakage in USD
+        """
+        multiplier = FERMI_MULTIPLIERS.get(
+            (niche_category or "").lower().strip(),
+            DEFAULT_FERMI_MULTIPLIER
+        )
+        leakage = (churn_reviews * multiplier) * price
+        logger.info(f"Fermi: churn={churn_reviews}, price=${price:.2f}, multiplier={multiplier} -> ${leakage:.2f}")
+        return round(leakage, 2)
     
     def _get_mece_pillar_mapping(self) -> Dict[str, str]:
         """
@@ -362,7 +531,13 @@ class Analyzer:
         
         return round(final_risk, 2), pillar_densities, primary_pillar
     
-    def analyze(self, reviews: List[Dict[str, Any]], app_name: str = "Unknown", days_back: int = 90) -> Dict[str, Any]:
+    def analyze(
+        self,
+        reviews: List[Dict[str, Any]],
+        app_name: str = "Unknown",
+        days_back: int = 90,
+        app_config: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         """
         Main analysis method - orchestrates all calculations and generates schema_app_gap.json.
         
@@ -379,6 +554,7 @@ class Analyzer:
             reviews: List of review dictionaries from Fetcher
             app_name: Name of the app being analyzed
             days_back: Number of days to analyze (default: 90)
+            app_config: Optional {price, niche_category} for Fermi estimation
             
         Returns:
             Analysis results dictionary (schema_app_gap.json format)
@@ -446,6 +622,16 @@ class Analyzer:
         # T-011 Fix: Now uses pain-keyword-driven signals
         volatility_slope = self.calculate_slope(df_filtered)
         
+        # T-021: Slope Delta (acceleration detection)
+        slope_delta, slope_delta_insight = self.calculate_slope_delta(df_filtered)
+        
+        # T-020: Fermi revenue leakage estimation
+        churn_count = self._get_churn_review_count(df_filtered)
+        app_cfg = app_config or {}
+        price = float(app_cfg.get("price", DEFAULT_PRICE_USD))
+        niche_category = app_cfg.get("niche_category")
+        monthly_leakage_usd = self.estimate_revenue_leakage(churn_count, price, niche_category)
+        
         # Step 7: Calculate keyword density (prescriptive analytics)
         category_counts = self.calculate_keyword_density(df_filtered)
         
@@ -492,16 +678,21 @@ class Analyzer:
         top_pain_categories.sort(key=lambda x: x['count'] * x['weight'], reverse=True)
         
         # Step 12: Extract evidence (sample negative reviews)
+        # T-023: Whale multiplier - prioritize long/domain-specific reviews (3x weight)
         evidence = []
         if not negative_reviews.empty:
-            # Get top 5 most "helpful" negative reviews (by text length as proxy)
             text_col = 'text' if 'text' in negative_reviews.columns else 'title'
             if text_col in negative_reviews.columns:
-                # Calculate text length for sorting
                 negative_reviews_copy = negative_reviews.copy()
-                negative_reviews_copy['_text_length'] = negative_reviews_copy[text_col].astype(str).str.len()
-                # Sort by length descending and take top 5
-                evidence_reviews = negative_reviews_copy.nlargest(5, '_text_length', keep='first')
+                texts = negative_reviews_copy[text_col].astype(str)
+                negative_reviews_copy['_text_length'] = texts.str.len()
+                negative_reviews_copy['_is_whale'] = texts.apply(self._is_whale_review)
+                # Evidence score: length * (WHALE_MULTIPLIER if whale else 1)
+                negative_reviews_copy['_evidence_score'] = (
+                    negative_reviews_copy['_text_length']
+                    * negative_reviews_copy['_is_whale'].map(lambda w: WHALE_MULTIPLIER if w else 1.0)
+                )
+                evidence_reviews = negative_reviews_copy.nlargest(5, '_evidence_score', keep='first')
                 for _, review in evidence_reviews.iterrows():
                     review_text = str(review.get('text', review.get('title', '')))
                     if review_text:
@@ -527,7 +718,12 @@ class Analyzer:
                     "Economic": round(pillar_densities.get("Economic", 0.0), 4),
                     "Experience": round(pillar_densities.get("Experience", 0.0), 4)
                 },
-                "primary_pillar": primary_pillar
+                "primary_pillar": primary_pillar,
+                # T-020: Fermi revenue leakage
+                "monthly_leakage_usd": monthly_leakage_usd,
+                # T-021: Slope delta (acceleration)
+                "slope_delta": slope_delta,
+                "slope_delta_insight": slope_delta_insight,
             },
             "evidence": evidence
         }
@@ -555,13 +751,15 @@ class Analyzer:
                 "broken_update_detected": False,
                 "suspected_version": None,
                 "top_pain_categories": [],
-                # T-012: Add MECE pillar information
                 "pillar_densities": {
                     "Functional": 0.0,
                     "Economic": 0.0,
                     "Experience": 0.0
                 },
-                "primary_pillar": "None"
+                "primary_pillar": "None",
+                "monthly_leakage_usd": 0.0,
+                "slope_delta": None,
+                "slope_delta_insight": None,
             },
             "evidence": []
         }

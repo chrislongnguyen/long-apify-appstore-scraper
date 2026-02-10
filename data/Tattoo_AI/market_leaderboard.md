@@ -1,18 +1,18 @@
 # Market Leaderboard: Screen Time & Focus Apps
 
-**Generated:** 2026-02-10 16:08:11
+**Generated:** 2026-02-10 22:49:55
 **Total Apps Analyzed:** 4
 
-## Risk Score Ranking (MECE Methodology)
+## Revenue Leakage Ranking (T-024 Predictive)
 
-Apps are ranked by Risk Score (descending). Higher scores indicate more volatility and potential issues.
+Apps are ranked by Estimated Monthly Revenue Leakage (descending). Higher leakage indicates more urgent opportunity.
 
-| Rank | App Name | Risk Score | Vol. Slope | Neg. Ratio (%) | Volume | Primary Pillar | Suspected Version |
-|------|----------|------------|------------|----------------|--------|----------------|-------------------|
-| 1 | Tattoo AI Design Gen | 48.89 | -0.0238 | 88.9% | 9 | Economic | 1.6.1 |
-| 2 | Ai Tattoo Ideas Art | 46.67 | -0.0000 | 66.7% | 3 | Functional | 1.3.1 |
-| 3 | Tattoo AI Design | 42.72 | 0.1374 | 56.7% | 127 | Economic | None |
-| 4 | Tattoo AI Design HubX | 42.72 | 0.1374 | 56.7% | 127 | Economic | None |
+| Rank | App Name | Revenue Leakage ($/mo) | Momentum | Risk Score | Vol. Slope | Neg. Ratio (%) | Volume | Primary Pillar | Suspected Version |
+|------|----------|------------------------|----------|------------|------------|----------------|--------|----------------|-------------------|
+| 1 | Tattoo AI Design | $49,950 | 📉 Stabilizing | 43.75 | 0.1703 | 56.3% | 126 | Economic | None |
+| 2 | Ai Tattoo Ideas Art | — | 📉 Stabilizing | 46.67 | -0.0000 | 66.7% | 3 | Functional | 1.3.1 |
+| 3 | Tattoo AI Design Gen | — | 📉 Stabilizing | 48.89 | -0.0238 | 88.9% | 9 | Economic | 1.6.1 |
+| 4 | Tattoo AI Design HubX | — | 📉 Stabilizing | 42.72 | 0.1374 | 56.7% | 127 | Economic | None |
 
 ## Interpretation
 
@@ -46,6 +46,8 @@ Apps are ranked by Risk Score (descending). Higher scores indicate more volatili
 
 ### Column Definitions
 
+- **Revenue Leakage ($/mo):** Fermi estimate of monthly revenue opportunity from churn signals
+- **Momentum:** 🚀 Accelerating = worsening trend; 📉 Stabilizing = improving trend
 - **Risk Score (0-100):** MECE-based composite metric (Pillar + Boost)
 - **Vol. Slope (Trend):** Rate of change in pain-keyword reviews per week
   - Positive = increasing problems (worsening)

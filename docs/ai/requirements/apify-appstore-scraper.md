@@ -19,7 +19,7 @@ description: Deterministic extraction and statistical analysis of "Enshittificat
 ## 1.3 Desired User Action (The Goal)
 * **Verb (The Core Action):** **Extract, Compute & Storytell**.
     * *Acceptance Criteria 1:* The system must ingest a list of App Store URLs and fetch reviews from the **Last 90 Days** only.
-    * *Acceptance Criteria 2:* The system must output a `analysis_report.md` that uses hard data (counts, slopes, correlations) to tell the story of the app's decline, without using an LLM.
+    * *Acceptance Criteria 2:* The system must output Markdown reports (`report_{APP}_{YYYY-MM-DD}.md`) that use hard data (counts, slopes, correlations) to tell the story of the app's decline, without using an LLM.
 
 ### Effectiveness Constraints (The "How")
 * **Sustainability Adverbs (Safety/Risk):** [Data Integrity]
@@ -32,7 +32,7 @@ description: Deterministic extraction and statistical analysis of "Enshittificat
     * *Constraint:* **Surgically** (Time-Bound).
     * *Acceptance Criteria:* Hard filter: `date >= (today - 90 days)`.
     * *Constraint:* **Thriftily** (Noise Reduction).
-    * *Acceptance Criteria:* Discard reviews with `< 3 words` unless they contain "Critical Keywords" (e.g., "scam", "crash").
+    * *Acceptance Criteria:* Discard reviews with fewer than N words (configurable via `settings.json` min_review_length_words) unless they contain "Critical Keywords" (e.g., "scam", "crash").
 
 * **Scalability Adverbs (Growth):** [Volume]
     * *Constraint:* **Comparatively** (Benchmarking).
@@ -43,7 +43,7 @@ description: Deterministic extraction and statistical analysis of "Enshittificat
 
 ### Layer 1: Descriptive Analytics (The "What")
 * **Signal:** *Volume of Negativity.*
-* **Logic:** Count of 1-Star & 2-Star reviews vs Total Reviews per Week.
+* **Logic:** Count of reviews containing pain keywords (from `pain_keywords.json`) vs Total Reviews per Week. *(T-011: "Negative" redefined as pain-keyword reviews, not just 1-2 star rating — handles "Irony Paradox" where 5-star reviews express pain.)*
 * **Output:** "Weekly Complaint Velocity" (e.g., "50 complaints/week").
 
 ### Layer 2: Predictive Analytics (The "Trend")
@@ -63,7 +63,7 @@ description: Deterministic extraction and statistical analysis of "Enshittificat
 * **Output:** A prioritized list of "Kill Metrics" (e.g., "Fix Login Crash to reduce Risk Score by 40 points").
 
 ## 1.5 Output Format (The Story)
-The Python script must generate a Markdown file (`report_APPNAME.md`) containing:
+The Python script must generate Markdown files (`report_{APP}_{YYYY-MM-DD}.md`) containing:
 1.  **Executive Summary:** (Computed f-string) "App X is in [CRITICAL/STABLE] condition with a Risk Score of [78/100]."
 2.  **The Evidence:**
     * "Primary Pain Cluster: 'Subscription' (mentioned in 60% of negative reviews)."
@@ -86,7 +86,7 @@ To achieve "Irrefutable Evidence" in reporting, the system must implement the fo
 * **Goal:** Correlate Review Volume/Sentiment with time to identify "Bad Updates."
 * **Logic:**
     * Group reviews by `week` (ISO Calendar).
-    * **Formula:** $PainDensity = \frac{\text{Count of Reviews with Pain Keywords}}{\text{Total Reviews in Week}}$
+    * **Formula:** $PainDensity = \frac{\text{Weighted Pain Count}}{\text{Total Reviews in Week}}$ where Whale reviews (T-023) contribute 3x.
     * **Anomaly Detection:** Flag any week where $Density > (\mu_{rolling} + 2\sigma)$.
 * **Acceptance Criteria:**
     * Must correctly identify known spikes (e.g., Version 2.0 launch).
@@ -142,47 +142,98 @@ To achieve "Irrefutable Evidence" in reporting, the system must implement the fo
 * **Reasoning:** N-Gram analysis requires the raw `text` column to detect phrases like "sync failed".
 * **Privacy:** No PII is retained; only aggregate stats and anonymized quotes are saved to Markdown.
 * **Output Artifacts:**
-    * `reports/niche_matrix.json` (The Comparative Heatmap).
-    * `reports/intelligence.json` (The Intermediate Forensic Data).
+    * `reports/{niche_name}/niche_matrix.json` (The Comparative Heatmap).
+    * `reports/{niche_name}/{app}_intelligence.json` (The Intermediate Forensic Data).
+
+## 2.6 White Space / Safe Harbor (T-017)
+* **Goal:** Identify "Low Risk, High Quality" gaps in the niche for positioning.
+* **Logic:** An app qualifies as a **Safe Harbor** only if ALL of the following hold:
+    * Functional pillar score < 30 AND Economic pillar score < 30 (from niche_matrix).
+    * **AND** `risk_score < 50` (from schema_app_gap). High risk_score disqualifies even if pillars are low.
+* **Output:** "Gap Found" or "No Gap" section in the Niche Report (`report_NICHE_{NAME}_{YYYY-MM-DD}.md`).
 
 ---
 
-## 4. PHASE 6: THE ARCHITECT (Prescriptive Analytics)
+## 3. IMPLEMENTATION & ASSUMPTIONS
+
+* **Assumptions:** "Date" in reviews is localized to UTC; Apify output schema is stable; `targets.json` and `pain_keywords.json` are valid.
+* **Config:** Filter thresholds (min_review_length_words, min_star_rating) are configurable via `settings.json`; defaults may vary by deployment.
+
+---
+
+## 4. PHASE 6: PREDICTIVE ANALYTICS (The Oracle)
 
 ### Problem Space
-- **Core Pain Point:** "Analysis Paralysis" - knowing *that* competitors are failing is not the same as knowing *what* to build to beat them.
-- **The Gap:** Founders struggle to translate "1-star reviews" into a "User Story" or "Feature Spec" without personal bias.
-- **The Opportunity:** High-value users ("Whales") often bury million-dollar feature requests in long, technical reviews that get lost in the noise of "price complaints."
+- **Core Pain Point:** "Magnitude Blindness" - Founders know competitors are failing (Diagnostic), but don't know *how fast* they are crashing or *how much money* is bleeding.
+- **The Gap:** A chart showing "more bad reviews" is interesting. A headline saying "Competitor X lost $45k in November due to Version 4.0" is actionable.
+- **The Shift:** Move from "Static Analysis" to "Dynamic Forecasting" (Trend Acceleration & Revenue Estimation).
 
 ### The Actor
-- **Primary User:** The "Venture Architect" (Founder/Builder)
-- **System Actor:** `Architect` (Hybrid Python/LLM Agent)
+- **Primary User:** The "Venture Architect" (Founder/Investor)
+- **System Actor:** `PredictiveModel` (Python Stats Engine)
 
 ### Desired User Action
-**Verb:** **Synthesize, Simulate & Spec**
+**Verb:** **Quantify, Forecast & Name**
 
 **Acceptance Criteria:**
-1. System must distinguish "Whales" (High-Value Users) from generic complainers using heuristics (length > 40 words, domain vocabulary).
-2. System must estimate **Revenue Leakage** (Monthly $) using Fermi estimation based on churn signals.
-3. System must generate an `roadmap_mvp.md` that inverts "Pain Clusters" into "User Stories" (e.g., "Crash on Export" $\to$ "As a Pro User, I can export 4k video reliably").
-4. System must integrate **Reddit** (`apify/reddit-scraper`) to fetch qualitative "Feature Requests" to complement App Store "Bug Reports."
+1. System must calculate the **Slope Delta** (Acceleration) to highlight if enshittification is speeding up or slowing down.
+2. System must **"Name the Spike"**: Automatically link statistical anomalies to specific Version Numbers (e.g., "The Version 4.0 Disaster").
+3. System must estimate **Revenue Leakage** using a Fermi Model with dynamic multipliers based on app category (B2B/Consumer/Game).
 
 ### Effectiveness Constraints
-- **Surgically (Signal vs. Noise):** Apply a **3x-5x Multiplier** to pain points raised by "Whales" (Verified Pro/Long Context).
-- **Financially (Estimation):** Differentiate between a "bad app" and a "profitable gap" using Revenue Leakage logic.
-- **Creatively (Generative):** Use LLM (Gemini/OpenAI) strictly for *text synthesis* (User Stories), not for *math/stats* (which remains Python).
+- **Financially (Fermi Logic):** Use the "Iceberg Theory" to estimate silent churners from visible complaints.
+- **Contextually (Causality):** Every spike must be treated as a "Marketing Headline" opportunity, not just a data point.
+- **Triangulated (Accuracy):** Combine App Store (Floor), Reddit (Intensity), and Pricing (Value) to bounds-check estimates.
 
-### Functional Logic (The Architect Layer)
-1.  **The "Whale" Detector:**
-    * Filter: `Review Length > 40 words` OR `Vocab in {domain_terms}`.
-    * Action: Boost impact score of these reviews.
-2.  **Revenue Simulator:**
-    * Formula: $Est\_Revenue\_Leakage = (Vol_{churn\_reviews} \times Multiplier) \times Price_{avg}$.
-    * Input: `price` from `targets.json`.
-3.  **The "Anti-Roadmap" Generator:**
-    * Input: `niche_matrix.json` + `top_pain_categories`.
-    * Process: Invert Negative Clusters $\to$ Positive User Stories.
-    * Output: `roadmap_mvp.md` (Prioritized Backlog).
-4.  **Reddit Integration:**
-    * Source: `r/{niche}` (e.g., `r/tattoodesign`).
-    * Focus: "Feature Requests" and "Alternatives" threads.
+### Functional Logic (Predictive Layer)
+
+#### 1. Deterministic Trend Analysis (The Slope & Delta)
+* **Metric:** `Volatility Slope` ($m$) via Linear Regression (Review Volume vs Time).
+* **New Metric:** **Slope Delta** ($\Delta m$).
+    * *Logic:* Compare Slope(Last 4 Weeks) vs Slope(Previous 4 Weeks).
+    * *Insight:* "Is the bleeding accelerating?" (Positive $\Delta$) or "Is it stabilizing?" (Negative $\Delta$).
+    * *Output:* "Acceleration Detected: +15% week-over-week."
+
+#### 2. Statistical Anomaly Detection (The Named Spike)
+* **Principle:** Event Causality. "Random" bad weeks don't exist; they are caused by decisions.
+* **Logic:**
+    * Identify Anomaly: $PainDensity > \mu + 2\sigma$.
+    * Identify Culprit: Correlate anomaly week with `version_history` (if available) or dominant topic cluster.
+* **Output:** Transform "Week 42 Spike" $\to$ "**The Version 4.2 Crash**" (Narrative Label).
+* **Founder Lesson:** Use this for marketing copy (e.g., "Did you lose data in Nov? We built an importer.").
+
+#### 3. Fermi Estimation (The Revenue Engine)
+* **Goal:** Quantify the financial opportunity ($ Monthly Leakage).
+* **Formula:** $Leakage = (Churn\_Reviews \times Multiplier) \times Avg\_Price$
+* **Variables:**
+    * `Churn_Reviews`: Count of reviews with "Economic" or "Functional" pain pillars.
+    * `Avg_Price`: Extracted from "In-App Purchases" list (or default $9.99).
+    * `Multiplier`: **Dynamic Ratio** based on Niche Category (Configurable in `targets.json`):
+        * **B2B SaaS:** 1:50 (High friction to complain).
+        * **Consumer Utility:** 1:100 (Standard).
+        * **Games/Viral:** 1:200+ (Low friction, high churn).
+* **Triangulation (Confidence Check):**
+    * *App Store:* Provides the "Floor" (Verified Paying Users).
+    * *Reddit:* Provides the "Intensity" (If sentiment is "Vitriolic", increase Multiplier by 1.5x).
+
+### 4.1 Whale Detector (T-023)
+* **Goal:** Prioritize high-value reviews (long, domain-specific) for evidence and Pain Density.
+* **Logic:** A review is a "Whale" if it has > 40 words OR contains domain vocabulary (e.g., "latency", "vector", "workflow", "sync", "export").
+* **Multiplier:** 3.0x for Pain Density (Whale reviews contribute 3x to weekly pain count) and for evidence ranking.
+
+### 4.2 Predictive Integration (T-024)
+* **Goal:** Surface predictive metrics in reports and leaderboard.
+* **Individual Report:** Financial Impact section ("Estimated Monthly Revenue Leakage: $X", "Trend Acceleration: [insight]").
+* **Timeline Exhibit:** Named Spike used for exhibit title when available (e.g., "Exhibit A: The Version X.X Crisis").
+* **Leaderboard:** Primary sort by `monthly_leakage_usd` (descending); Revenue Leakage ($/mo) column; Momentum column.
+* **Momentum Labels (T-021 Refined):**
+    * `volatility_slope > 0.1` + `slope_delta > 0` → "Accelerating Pain"
+    * `volatility_slope > 0.1` + `slope_delta < 0` → "Decelerating Pain"
+    * `-0.05 ≤ volatility_slope ≤ 0.05` → "Stabilizing"
+    * `volatility_slope < -0.05` → "Improving"
+
+---
+
+## 5. PHASE 7: PRESCRIPTIVE ANALYTICS (The Architect) - *DEFERRED*
+* **Goal:** Generate "Anti-Roadmap" and User Stories using GenAI.
+* **Status:** De-prioritized until Predictive Layer (Phase 6) is validated.

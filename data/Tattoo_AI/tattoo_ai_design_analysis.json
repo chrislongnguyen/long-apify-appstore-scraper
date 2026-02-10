@@ -2,10 +2,10 @@
   "app_name": "Tattoo_AI_Design",
   "analysis_date": "2026-02-10",
   "metrics": {
-    "total_reviews_90d": 127,
-    "negative_ratio": 0.567,
-    "volatility_slope": 0.1374,
-    "risk_score": 42.72
+    "total_reviews_90d": 126,
+    "negative_ratio": 0.563,
+    "volatility_slope": 0.1703,
+    "risk_score": 43.75
   },
   "signals": {
     "broken_update_detected": false,
@@ -23,7 +23,7 @@
       },
       {
         "category": "generic_pain",
-        "count": 35,
+        "count": 34,
         "weight": 2
       },
       {
@@ -33,16 +33,19 @@
       },
       {
         "category": "ads",
-        "count": 6,
+        "count": 5,
         "weight": 4
       }
     ],
     "pillar_densities": {
-      "Functional": 0.4331,
-      "Economic": 2.7717,
-      "Experience": 0.5512
+      "Functional": 0.4365,
+      "Economic": 2.7619,
+      "Experience": 0.5397
     },
-    "primary_pillar": "Economic"
+    "primary_pillar": "Economic",
+    "monthly_leakage_usd": 49950.0,
+    "slope_delta": -1.9,
+    "slope_delta_insight": "Stabilizing: -105.6% week-over-week"
   },
   "evidence": [
     "I took the bait. Sat there taking the quiz with its 30 questions. Does the tattoo have meaning. Do you want your astrological sign incorporated. Sun or moon. Blah blah. Get to the end. Download and pa",

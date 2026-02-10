@@ -86,6 +86,32 @@ class Reporter:
             verdict += f" Suspected problematic version: **{suspected_version}**."
         return verdict
     
+    def generate_financial_impact_section(self, analysis: Dict[str, Any]) -> str:
+        """
+        T-024: Generate Financial Impact section (Fermi + Trend Acceleration).
+        
+        Args:
+            analysis: Analysis results dictionary
+            
+        Returns:
+            Markdown-formatted financial impact section
+        """
+        signals = analysis.get("signals", {})
+        lines = []
+        
+        monthly_leakage = signals.get("monthly_leakage_usd", 0)
+        lines.append(f"- **Estimated Monthly Revenue Leakage:** ${monthly_leakage:,.2f}")
+        
+        slope_delta = signals.get("slope_delta")
+        slope_delta_insight = signals.get("slope_delta_insight")
+        if slope_delta is not None and slope_delta_insight:
+            # Extract percentage for display if available
+            lines.append(f"- **Trend Acceleration:** {slope_delta_insight}")
+        else:
+            lines.append("- **Trend Acceleration:** Insufficient data (need 8+ weeks)")
+        
+        return "\n".join(lines) if lines else "No financial impact data available."
+    
     def generate_evidence_section(self, analysis: Dict[str, Any]) -> str:
         """
         Generate evidence section with pain clusters and cliff events.
@@ -143,6 +169,42 @@ class Reporter:
             lines.append(f"{i}. > {text[:400]}{'...' if len(text) > 400 else ''}")
         return "\n\n".join(lines) if lines else "No qualifying negative reviews available."
     
+    def _get_momentum_label(self, volatility_slope: float, slope_delta: Optional[float]) -> str:
+        """
+        T-021 Refined: Momentum label from volatility_slope and slope_delta.
+        
+        - volatility_slope > 0.1: slope_delta < 0 -> "Decelerating Pain", > 0 -> "Accelerating Pain"
+        - -0.05 <= volatility_slope <= 0.05: "Stabilizing"
+        - volatility_slope < -0.05: "Improving"
+        - 0.05 < volatility_slope <= 0.1: "Worsening" (moderate) or use slope_delta if available
+        """
+        if volatility_slope > 0.1:
+            if slope_delta is not None:
+                return "🚀 Accelerating Pain" if slope_delta > 0 else "📉 Decelerating Pain"
+            return "🚀 Worsening"
+        if -0.05 <= volatility_slope <= 0.05:
+            return "📉 Stabilizing"
+        if volatility_slope < -0.05:
+            return "📈 Improving"
+        # 0.05 < volatility_slope <= 0.1: moderate worsening
+        if slope_delta is not None:
+            return "🚀 Accelerating Pain" if slope_delta > 0 else "📉 Decelerating Pain"
+        return "🚀 Worsening"
+
+    def _get_timeline_exhibit_title(self, timeline: List[Dict[str, Any]]) -> str:
+        """
+        T-024: Use Named Spike from forensic timeline for exhibit title.
+        
+        If any anomaly has a version label, e.g. "The Version 4.2 Spike",
+        return "The Version X.X Crisis". Otherwise "Timeline of Pain".
+        """
+        for t in timeline:
+            event = t.get("event", "")
+            version = t.get("version")
+            if event and "Version" in event and version:
+                return f"The Version {version} Crisis"
+        return "Timeline of Pain"
+    
     def _build_ascii_timeline(self, timeline: List[Dict[str, Any]], width: int = 50) -> str:
         """Build ASCII chart of weekly pain density (T-008 Exhibit A)."""
         if not timeline:
@@ -195,9 +257,16 @@ class Reporter:
         sections.append(self.generate_executive_summary(analysis))
         sections.append("")
         
-        # Exhibit A: Timeline of Pain
+        # T-024: Financial Impact section
+        sections.append("### Financial Impact")
+        sections.append("")
+        sections.append(self.generate_financial_impact_section(analysis))
+        sections.append("")
+        
+        # Exhibit A: Timeline of Pain (T-024: Named Spike title)
         if forensic and forensic.get("timeline"):
-            sections.append("## Exhibit A: Timeline of Pain")
+            exhibit_title = self._get_timeline_exhibit_title(forensic["timeline"])
+            sections.append(f"## Exhibit A: {exhibit_title}")
             sections.append("")
             sections.append("Weekly pain density (reviews with pain keywords / total reviews):")
             sections.append("")
@@ -282,12 +351,18 @@ class Reporter:
         sections.append("- 🟢 Score ≤ 50 (Low/Moderate Risk)")
         sections.append("")
         
-        # T-017: White Space Analysis - Identify "Low Risk, High Quality" gap
+        # T-017: White Space Analysis - "Safe Harbor" = pillars low AND risk_score < 50
+        # Build app_name -> risk_score from analyses (critical: high risk_score disqualifies)
+        app_risk = {}
+        for a in analyses:
+            app_risk[a.get("app_name", "Unknown")] = a.get("metrics", {}).get("risk_score", 0)
+        
         safe_harbors = []
         for app_name, pillars in niche_matrix.items():
             func = pillars.get("Functional", 0)
             econ = pillars.get("Economic", 0)
-            if func < 30 and econ < 30:
+            risk_score = app_risk.get(app_name, 0)
+            if func < 30 and econ < 30 and risk_score < 50:
                 safe_harbors.append(app_name.replace("_", " "))
         sections.append("## 🏳️ White Space Analysis")
         sections.append("")
@@ -376,6 +451,10 @@ class Reporter:
             # T-012: Extract primary pillar (MECE-based)
             primary_pillar = signals.get("primary_pillar", "None")
             suspected_version = signals.get("suspected_version")
+            # T-024: Predictive metrics
+            monthly_leakage_usd = signals.get("monthly_leakage_usd", 0.0)
+            slope_delta = signals.get("slope_delta")
+            slope_delta_insight = signals.get("slope_delta_insight")
             
             df_data.append({
                 "app_name": app_name,
@@ -385,13 +464,16 @@ class Reporter:
                 "total_reviews_90d": metrics.get("total_reviews_90d", 0),
                 "primary_pillar": primary_pillar,
                 "suspected_version": suspected_version if suspected_version else "None",
-                "broken_update_detected": signals.get("broken_update_detected", False)
+                "broken_update_detected": signals.get("broken_update_detected", False),
+                "monthly_leakage_usd": monthly_leakage_usd,
+                "slope_delta": slope_delta,
+                "slope_delta_insight": slope_delta_insight,
             })
         
         df = pd.DataFrame(df_data)
         
-        # Step 4: Sort by risk_score (descending) and add rank
-        df = df.sort_values("risk_score", ascending=False).reset_index(drop=True)
+        # Step 4: T-024 Sort by monthly_leakage_usd (descending) as primary rank
+        df = df.sort_values("monthly_leakage_usd", ascending=False).reset_index(drop=True)
         df.insert(0, "rank", range(1, len(df) + 1))
         
         # Step 5: Generate markdown table
@@ -423,18 +505,25 @@ class Reporter:
             f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             f"**Total Apps Analyzed:** {total_apps}",
             "",
-            "## Risk Score Ranking (MECE Methodology)",
+            "## Revenue Leakage Ranking (T-024 Predictive)",
             "",
-            "Apps are ranked by Risk Score (descending). Higher scores indicate more volatility and potential issues.",
+            "Apps are ranked by Estimated Monthly Revenue Leakage (descending). Higher leakage indicates more urgent opportunity.",
             "",
-            "| Rank | App Name | Risk Score | Vol. Slope | Neg. Ratio (%) | Volume | Primary Pillar | Suspected Version |",
-            "|------|----------|------------|------------|----------------|--------|----------------|-------------------|"
+            "| Rank | App Name | Revenue Leakage ($/mo) | Momentum | Risk Score | Vol. Slope | Neg. Ratio (%) | Volume | Primary Pillar | Suspected Version |",
+            "|------|----------|------------------------|----------|------------|------------|----------------|--------|----------------|-------------------|"
         ]
         
         # Add table rows
         for _, row in df.iterrows():
             rank = int(row["rank"])
             app_name = row["app_name"].replace("_", " ")
+            monthly_leakage = row.get("monthly_leakage_usd", 0)
+            leakage_str = f"${monthly_leakage:,.0f}" if monthly_leakage else "—"
+            # T-021 Refined: Momentum labels (volatility_slope + slope_delta)
+            momentum = self._get_momentum_label(
+                row.get("volatility_slope", 0),
+                row.get("slope_delta"),
+            )
             risk_score = f"{row['risk_score']:.2f}"
             volatility_slope = f"{row['volatility_slope']:.4f}"
             negative_ratio_pct = f"{row['negative_ratio'] * 100:.1f}%"
@@ -443,7 +532,7 @@ class Reporter:
             suspected_version = row.get("suspected_version", "None")
             
             md_lines.append(
-                f"| {rank} | {app_name} | {risk_score} | {volatility_slope} | {negative_ratio_pct} | {volume} | {primary_pillar} | {suspected_version} |"
+                f"| {rank} | {app_name} | {leakage_str} | {momentum} | {risk_score} | {volatility_slope} | {negative_ratio_pct} | {volume} | {primary_pillar} | {suspected_version} |"
             )
         
         md_lines.extend([
@@ -480,6 +569,8 @@ class Reporter:
             "",
             "### Column Definitions",
             "",
+            "- **Revenue Leakage ($/mo):** Fermi estimate of monthly revenue opportunity from churn signals",
+            "- **Momentum:** 🚀 Accelerating Pain = worsening & speeding up; 📉 Decelerating Pain = worsening but slowing; 📉 Stabilizing = flat trend; 📈 Improving = pain decreasing",
             "- **Risk Score (0-100):** MECE-based composite metric (Pillar + Boost)",
             "- **Vol. Slope (Trend):** Rate of change in pain-keyword reviews per week",
             "  - Positive = increasing problems (worsening)",
