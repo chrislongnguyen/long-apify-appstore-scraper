@@ -38,6 +38,10 @@ def validate_targets_config(config: Dict[str, Any]) -> bool:
     if "apps" not in config or "params" not in config:
         raise ValueError("targets.json must contain 'apps' and 'params' keys")
     
+    # T-016: niche_name is optional; used for subfolder organization
+    if "niche_name" in config and not isinstance(config.get("niche_name"), str):
+        raise ValueError("'niche_name' must be a string if present")
+    
     if not isinstance(config["apps"], list):
         raise ValueError("'apps' must be a list")
     

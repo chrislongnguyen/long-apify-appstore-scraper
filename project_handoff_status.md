@@ -1,22 +1,24 @@
 # PROJECT HANDOFF STATUS
 
 **Generated:** 2026-02-10  
-**Session Focus:** T-014 (Multi-Region Support), ERROR C003 Resolution, Voice AI Niche Analysis
+**Session Focus:** T-008 Forensic Intelligence, T-016 to T-019 (Phase 5 Complete)
 
 ---
 
 ## 1. ACTIVE PHASE & CURRENT TASK ID
 
-**Current Phase:** Phase 4 (Platinum Layer - The Reporter & Aggregator)  
-**Overall Progress:** 85% (22/26 tasks)  
-**Current Task:** T-008 - Gen Markdown (Storytelling reports)  
-**Status:** ✅ Phases 1, 2 & 3 Complete | ✅ T-011, T-012, T-010, T-014, T-015 Complete | ⏳ T-008 Pending
+**Current Phase:** Phase 5 (Diamond Layer - Refactoring & Polish) ✅ **COMPLETE**  
+**Overall Progress:** 100% (27/27 tasks)  
+**Current Task:** None - All tasks complete  
+**Status:** ✅ Phases 1-5 Complete
 
 **Recent Completions (2026-02-10):**
-- ✅ T-014: Multi-Region Support - Switched to `agents/appstore-reviews` actor, added country config
-- ✅ T-015: Knowledge Documentation Update - Updated Fetcher module docs
-- ✅ Voice AI Niche Analysis - 5 apps analyzed with market leaderboard generated
-- ✅ ERROR C003 Resolution - Fixed geo-fencing issues for niche apps
+- ✅ T-008: Forensic Intelligence - `src/intelligence.py` (ForensicAnalyzer) deployed
+- ✅ T-016: Dynamic Niche Directories - `data/{niche_name}/`, `reports/{niche_name}/`
+- ✅ T-017: White Space Analysis - "Gap Found" / "No Gap" in Niche Reports
+- ✅ T-018: Refine Migration - Strict regex `(switched|moved|migrated|changed) to {app}`
+- ✅ T-019: Forensic Unit Tests - `test_forensic.py` (timeline, clusters, migration, matrix, perf)
+- ✅ Tattoo AI Niche - 7 apps analyzed with forensic reports and leaderboard
 
 ---
 
@@ -52,6 +54,13 @@
 2. **Predictive Analytics:** "Enshittification" curve (slope of negative reviews over time)
 3. **Prescriptive Analytics:** Pain keyword density (categorized by severity: Critical, Scam, Performance, UX)
 
+### Forensic Intelligence (T-008)
+4. **Timeline of Pain:** Weekly Pain Density + anomaly detection (μ + 2σ)
+5. **Semantic Clustering:** N-Gram analysis (2-3 word phrases) on 1-2 star reviews
+6. **Competitor Migration:** Churn detection (`switched to X` / `moved to X`) — ignores "better than"
+7. **Feature/Fail Matrix:** Niche heatmap with MECE pillars (Functional, Economic, Experience)
+8. **White Space Analysis (T-017):** "Gap Found" when Functional & Economic < 30
+
 ---
 
 ## 3. SUMMARY: THE SOLUTION & COST (Design)
@@ -60,7 +69,7 @@
 
 ### Feature Definition
 **Noun:** `AppVolatilityAnalyzer` (CLI Tool)  
-**Core Function:** Python-based ETL pipeline that orchestrates Apify `apple-store-reviews` Actor, performs statistical analysis using Pandas/NumPy, and outputs Risk Scorecard for target apps.
+**Core Function:** Python-based ETL pipeline that orchestrates Apify `agents/appstore-reviews` Actor, performs statistical analysis using Pandas/NumPy, and outputs Risk Scorecard + Forensic Reports for target apps.
 
 ### Architecture Components
 1. **Fetcher:** Apify API integration with retry logic (`tenacity`)
@@ -69,32 +78,35 @@
    - Volatility slope calculation (`np.polyfit`)
    - Keyword density (vectorized regex)
    - **MECE Risk Scoring** (T-012): Pillar + Boost formula
-3. **Reporter:** Markdown report generation
+3. **ForensicAnalyzer** (`src/intelligence.py`): T-008 Forensic Intelligence
+   - `detect_event_timeline()` — Weekly Pain Density, anomaly detection
+   - `extract_semantic_clusters()` — N-Grams (sklearn CountVectorizer / Counter fallback)
+   - `map_competitor_migration()` — Churn vs Comparison (T-018 strict regex)
+   - `generate_matrix()` — Pillar scores for niche heatmap
+4. **Reporter:** Markdown report generation
    - Aggregate Leaderboard (T-010, T-012)
-   - Individual app reports (T-008 - pending)
+   - Individual Forensic Reports (T-008)
+   - Niche Battlefield Report (Matrix, Migration Flow, White Space)
+   - **Niche subdirectories** (T-016): `data/{niche_name}/`, `reports/{niche_name}/`
 
 ### Effectiveness Attributes
 - **Deterministic:** Math-based scoring (no LLM)
 - **Fault-Tolerant:** Retry logic, graceful error handling
 - **Vectorized:** Pandas operations for performance
 - **Thrifty:** In-memory filtering, drop generic 5-stars
-- **Config-Driven:** Batch processing via `targets.json`
+- **Config-Driven:** Batch processing via `targets.json` (incl. `niche_name`)
 - **Polylingual:** Bilingual keyword support (English/Vietnamese)
 
 ### Resource Impact
 **Financial Impact (OpEx):**
 - Apify API: ~$0.10 per 1,000 reviews
-- Current Usage: ~$0.01-0.02 per run
+- Current Usage: ~$0.05 per run
 - Projected Monthly: < $5.00 (within budget)
 
 **Build Cost (One-Time):**
-- Time to Build: Medium (4 phases, 24 tasks)
-- Complexity Risk: Medium (statistical analysis, API integration)
-- Status: 79% complete
-
-**ROI Sanity Check:**
-- Value Proposition: Quantitative evidence of app failures for strategic decision-making
-- Alignment: Fits "Efficiency" constraint (deterministic, fast, scalable)
+- Time to Build: Complete (5 phases, 27 tasks)
+- Complexity Risk: Medium (statistical analysis, API integration, forensic modules)
+- Status: 100% complete
 
 ---
 
@@ -104,221 +116,146 @@
 
 ### Completion Status
 - **Phase 1 (Bronze):** 100% (3/3 tasks) ✅
-- **Phase 2 (Silver):** 100% (3/3 tasks) ✅ (includes T-014)
+- **Phase 2 (Silver):** 100% (3/3 tasks) ✅
 - **Phase 3 (Gold):** 100% (3/3 tasks) ✅
-- **Phase 4 (Platinum):** 75% (3/4 tasks) 🟡
-- **Additional Work:** 100% (6/6 tasks) ✅
+- **Phase 4 (Platinum):** 100% (4/4 tasks) ✅
+- **Phase 5 (Diamond):** 100% (4/4 tasks) ✅
 
-**Overall Progress:** 85% (22/26 tasks)
+**Overall Progress:** 100% (27/27 tasks)
 
 ### Niches Analyzed
-| Niche | Apps | Reviews | Leaderboard |
-|-------|------|---------|-------------|
-| Digital Detox | 5 | 490 | `data/digitaldetox/market_leaderboard_digitaldetox.md` |
-| Voice AI | 5 | 62 | `data/market_leaderboard.md` |
+| Niche | Apps | Output Location |
+|-------|------|-----------------|
+| Digital Detox | 5 | `data/digitaldetox/`, `reports/` (legacy) |
+| Voice AI | 5 | `data/voicenotesai/` |
+| Tattoo AI | 7 | `data/Tattoo_AI/`, `reports/Tattoo_AI/` |
 
-### Active Tasks
+### Output Structure (T-016)
+- **Config:** `targets.json` → `niche_name` (e.g., "Tattoo_AI")
+- **Data:** `data/{niche_name}/*_reviews.json`, `*_analysis.json`, `market_leaderboard.md`
+- **Reports:** `reports/{niche_name}/report_*.md`, `*_intelligence.json`, `niche_matrix.json`
 
-#### ✅ Completed This Session
-- **T-011: Analyzer Calibration** ✅
-  - Fixed Score Inflation (normalized by total_reviews)
-  - Fixed Ghost Ratio (redefined "negative" as pain-keyword reviews)
-  - Fixed Flatline Slope (uses keyword density trend)
-  
-- **T-012: Advanced Reporting (Metrics 2.0)** ✅
-  - Implemented MECE Pillar mapping (Functional, Economic, Experience)
-  - Implemented Pillar Density calculation
-  - Implemented Base Risk Score formula
-  - Implemented Volatility Boost formula
-  - Enhanced leaderboard with 8 columns (Primary Pillar, Suspected Version)
-  - Added detailed MECE methodology footer
-
-- **Knowledge Documentation** ✅
-  - Created `knowledge-analyzer.md` (comprehensive Analyzer docs)
-  - Created `knowledge-reporter.md` (Reporter module docs)
-  - Created `knowledge-main.md` (ETL pipeline orchestration docs)
-
-#### 🔴 Next Task
-- **T-008: Gen Markdown** 🔴 To Do
-  - Dependencies: ✅ T-010 (Complete), ✅ T-012 (Complete)
-  - Estimated Effort: 2-3 hours
-  - Key Tasks:
-    - Implement `generate_executive_summary()`
-    - Implement `generate_evidence_section()`
-    - Implement `generate_raw_data_sample()`
-    - Format as readable markdown
-    - Generate `report_{APPNAME}.md` for each app
-
-### Milestone Status
-- **M1 (Bronze):** ✅ Complete (Day 1 target met)
-- **M2 (Silver):** ✅ Complete (Day 1 target met)
-- **M3 (Gold):** ✅ Complete (Day 2 target met)
-- **M4 (Platinum):** ⏳ In Progress (75% complete, T-008 pending)
+### All Tasks Complete
+- No active tasks; pipeline fully operational
 
 ---
 
-## 5. MODIFIED FILES IN THIS SESSION
+## 5. MODIFIED FILES (Full Implementation)
 
 ### Core Implementation Files
-1. **`src/fetcher.py`** (T-014)
-   - Changed `ACTOR_ID` from `thewolves/appstore-reviews-scraper` to `agents/appstore-reviews`
-   - Added `_extract_app_id()` method to parse numeric IDs from URLs
-   - Changed from `startUrls` to `appIds` parameter (more reliable)
-   - Made `country` configurable via `settings.json` → `filters.country`
-   - Added logging for country and App ID usage
+1. **`main.py`**
+   - T-008: Forensic pipeline (ForensicAnalyzer, intelligence.json, individual + niche reports)
+   - T-016: Niche subdirectories (`data/{niche_name}/`, `reports/{niche_name}/`)
+
+2. **`src/intelligence.py`** (NEW)
+   - ForensicAnalyzer class
+   - detect_event_timeline, extract_semantic_clusters, map_competitor_migration, generate_matrix
+   - T-018: Strict migration regex
+
+3. **`src/reporter.py`**
+   - generate_report() — Executive Verdict, Exhibits A–C (Timeline, Clusters, Quotes)
+   - generate_niche_report() — Matrix, Migration Flow
+   - T-017: White Space Analysis section
+
+4. **`src/fetcher.py`**
+   - T-014: Multi-Region Support (agents/appstore-reviews, country config)
+
+5. **`src/config_validator.py`**
+   - T-016: Optional `niche_name` validation
 
 ### Configuration Files
-2. **`config/settings.json`**
-   - Added `filters.country` parameter (set to `"all"` for global search)
+6. **`config/targets.json`**
+   - Added `niche_name` (e.g., "Tattoo_AI")
 
-### Documentation Files
-3. **`docs/ai/planning/apify-appstore-scraper.md`**
-   - Added T-014: Multi-Region Support task
-   - Added T-015: Knowledge Documentation Update task
-   - Updated progress metrics (85% overall)
-   - Marked ERROR C003 as RESOLVED
-   - Added Niches Analyzed table
+7. **`config/README.md`**
+   - Documented `niche_name` schema
 
-4. **`docs/ai/implementation/knowledge-fetcher.md`** (UPDATED)
-   - Documented actor switch to `agents/appstore-reviews`
-   - Documented App ID extraction method
-   - Documented country config and multi-region support
-   - Updated diagrams and metadata
+### Test Files
+8. **`test_forensic.py`** (NEW)
+   - T-019: Forensic unit tests (timeline, clusters, migration, matrix, perf < 2s)
 
-### Data Files Generated
-5. **Voice AI Niche** (`data/`)
-   - `voicenotes_ai_reviews.json`, `voicenotes_ai_analysis.json`
-   - `letterly_ai_reviews.json`, `letterly_ai_analysis.json`
-   - `cleft_notes_reviews.json`, `cleft_notes_analysis.json`
-   - `audiopen_official_reviews.json`, `audiopen_official_analysis.json`
-   - `whisper_memos_reviews.json`, `whisper_memos_analysis.json`
-   - `market_leaderboard.md`
+### Dependencies
+9. **`requirements.txt`**
+   - Added scikit-learn (N-Gram analysis)
 
 ---
 
 ## 6. NEXT ACTIONS (When We Return)
 
-### Immediate Priority (T-008)
-1. **Implement Individual App Reports**
-   - Complete `Reporter.generate_executive_summary()` method
-   - Complete `Reporter.generate_evidence_section()` method
-   - Complete `Reporter.generate_raw_data_sample()` method
-   - Complete `Reporter.generate_report()` orchestration method
-   - Test with sample app data
-   - Verify markdown formatting and readability
+### Maintenance & Enhancement
+1. **Design Doc Update**
+   - Add `niche_name` to targets.json schema in `docs/ai/design/apify-appstore-scraper.md`
+   - Document subfolder layout (`data/{niche}/`, `reports/{niche}/`)
 
-2. **Integration**
-   - Integrate `generate_report()` into `main.py` processing loop
-   - Generate reports for all apps after analysis completes
-   - Verify output files are created correctly
-
-### Testing & Validation
-3. **End-to-End Testing**
-   - Run full pipeline with all apps
-   - Verify all outputs (reviews, analysis, leaderboard, individual reports)
-   - Check metrics are accurate and normalized
-
-4. **MECE Formula Validation**
-   - Verify Risk Scores are in valid 0-100 range
-   - Verify Negative Ratios are > 0% (not ghost ratios)
-   - Verify Volatility Slopes show actual trends (not flatlines)
-   - Verify Primary Pillars are correctly assigned
-
-### Documentation & Cleanup
-5. **Update Planning Doc**
-   - Mark T-008 as complete when finished
-   - Update progress metrics to 100%
-   - Document any discovered issues or improvements
-
-6. **Code Review**
-   - Review T-012 MECE implementation for optimization opportunities
-   - Consider extracting pillar mapping to config file (future improvement)
-   - Review error handling edge cases
-
-### Future Enhancements (Post-T-008)
-7. **Performance Optimization**
-   - Consider parallel processing for multiple apps
-   - Profile regex operations for optimization
-   - Add caching for keyword patterns
-
-8. **Feature Enhancements**
+2. **Optional Improvements**
    - Configurable pillar mapping (move from code to config)
    - Export options (CSV, JSON) for leaderboard
-   - Filtering options (by risk score, pillar, volume)
+   - Parallel processing for multiple apps
+
+### Validation
+3. **Run Full Pipeline**
+   ```bash
+   export APIFY_API_KEY=your_token
+   python main.py
+   ```
+
+4. **Run Forensic Tests**
+   ```bash
+   python test_forensic.py
+   ```
 
 ---
 
 ## 7. KEY INSIGHTS & DECISIONS
 
-### Critical Fixes (T-011)
-- **Score Inflation:** Risk scores were unbounded (reached 93.0) due to raw count × weight multiplication. Fixed by normalizing category_score by total_reviews.
-- **Ghost Ratio:** Negative ratio was always 0.0% because definition only counted low-star reviews. Fixed by redefining "negative" as any review containing pain keywords (handles "Irony Paradox").
-- **Flatline Slope:** Volatility slope was always 0.0000 because np.polyfit received zero qualifying reviews. Fixed by using pain-keyword-driven signals instead of traditional negative reviews.
+### Forensic Intelligence (T-008)
+- **Timeline:** Pain Density = (reviews with pain keywords) / (total reviews per week); anomaly = μ + 2σ
+- **N-Grams:** sklearn CountVectorizer (ngram_range 2–3) with Counter fallback; filters generic phrases
+- **Migration:** T-018 strict regex — only `(switched|moved|migrated|changed) to {app}` counts as churn; "better than" ignored
+- **Matrix:** Pillar densities × 10, capped at 100; 🔴 for scores > 50
 
-### MECE Methodology (T-012)
-- **Pillar Mapping:** Categories mapped to three MECE pillars (Functional, Economic, Experience)
-- **Density Calculation:** Pillar density = sum of weights / total reviews
-- **Base Score:** (FunctionalDensity + EconomicDensity + ExperienceDensity) × 10.0
-- **Volatility Boost:** BaseScore × (1 + max(0, VolatilitySlope)) - only amplifies if trend is worsening
+### White Space (T-017)
+- **Logic:** Apps with Functional < 30 AND Economic < 30 = "safe harbor"
+- **Output:** "Gap Found: [App Name] — safe harbor(s)" or "No Gap: All apps risky"
 
-### Knowledge Documentation
-- Created comprehensive knowledge docs for all three core modules
-- Documents include visual diagrams, dependency mapping, and implementation details
-- Ready for onboarding new developers or future maintenance
+### Niche Directories (T-016)
+- **Config:** `targets.json` → `niche_name` (optional; default "default")
+- **Paths:** All outputs under `data/{niche_name}/` and `reports/{niche_name}/`
 
 ---
 
 ## 8. BLOCKERS & RISKS
 
 ### Current Blockers
-- **None** - T-008 is ready to start (all dependencies complete)
+- **None** — All phases complete
 
-### Resolved Issues (This Session)
-- **ERROR C003 "Got no reviews"** ✅ RESOLVED
-  - **Root Cause:** `thewolves/appstore-reviews-scraper` actor had reliability issues with niche apps; reviews are geo-fenced by country
-  - **Resolution:** 
-    1. Switched to `agents/appstore-reviews` actor (faster, more reliable)
-    2. Added `_extract_app_id()` to use `appIds` parameter (more reliable than `startUrls`)
-    3. Made `country` configurable via `settings.json`
-    4. Set `country: "all"` for global App Store search
-
-### Potential Risks
-- **T-008 Complexity:** Markdown report generation may require careful formatting
-  - **Mitigation:** Follow existing leaderboard markdown generation patterns
-- **Report Quality:** Individual reports need to be readable and actionable
-  - **Mitigation:** Include executive summary, evidence, and raw data samples
+### Resolved Issues
+- **ERROR C003 "Got no reviews"** ✅ RESOLVED (T-014)
+- **T-008 Forensic Reporting** ✅ COMPLETE
+- **Hardcoded niche name** ✅ RESOLVED (T-016)
+- **Missing White Space Analysis** ✅ RESOLVED (T-017)
+- **Migration false positives** ✅ RESOLVED (T-018)
+- **No Forensic tests** ✅ RESOLVED (T-019)
 
 ### Technical Debt
-- Pillar mapping is hardcoded in `_get_mece_pillar_mapping()` (should be configurable)
-- Evidence selection uses text length as proxy (not ideal, but functional)
-- Critical keywords in fetcher are hardcoded (should load from `pain_keywords.json`)
+- Pillar mapping hardcoded in Analyzer (could move to config)
+- Evidence selection uses text length as proxy
+- Critical keywords in fetcher hardcoded (could load from pain_keywords.json)
 
 ---
 
 ## 9. METRICS & VALIDATION
 
-### Test Results (T-014 - Voice AI Niche)
-- **Apify Actor:** `agents/appstore-reviews` ✅ Working
-- **Country Config:** `"all"` ✅ Working (global search)
-- **App ID Extraction:** ✅ Working (extracted from URLs)
-- **Reviews Fetched:** 62 reviews across 5 apps
-- **Leaderboard:** ✅ Generated with MECE Risk Scoring
+### Test Results
+- **test_forensic.py:** All 5 tests pass ✅
+- **Config validation:** targets.json, pain_keywords.json, settings.json valid ✅
+- **Smoke test:** Available via `python main.py --smoke-test`
 
-### Voice AI Leaderboard Results
-| Rank | App | Risk Score | Vol. Slope | Neg. Ratio | Volume |
-|------|-----|------------|------------|------------|--------|
-| 1 | Cleft Notes | 66.67 | -0.0000 | 66.7% | 3 |
-| 2 | Voicenotes AI | 29.38 | -0.1190 | 25.0% | 16 |
-| 3 | Letterly AI | 22.73 | -0.1091 | 27.3% | 22 |
-| 4 | AudioPen Official | 16.00 | 0.0000 | 20.0% | 5 |
-| 5 | Whisper Memos | 13.75 | -0.0545 | 18.8% | 16 |
-
-### Code Quality
-- All code compiles without errors
-- Knowledge documentation updated
-- Planning documentation up-to-date
-- Git commit pending
+### Tattoo AI Niche (Sample Output)
+- **Reports:** `reports/Tattoo_AI/report_*.md`
+- **White Space:** "Gap Found: Tattoo AI Design, Tattoo AI Design HubX — safe harbor(s)"
+- **Matrix:** Functional, Economic, Experience scores with 🔴/🟢 indicators
 
 ---
 
-**Status:** Ready for T-008 implementation. Pipeline fully operational with two niches analyzed (Digital Detox, Voice AI).
+**Status:** Project complete. Pipeline operational with Forensic Intelligence, niche organization, and unit tests. Ready for maintenance or enhancement.

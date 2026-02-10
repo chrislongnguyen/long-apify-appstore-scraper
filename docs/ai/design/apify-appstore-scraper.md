@@ -35,27 +35,31 @@ description: Technical architecture for the deterministic extraction and statist
 
 ```mermaid
 graph TD
-    User((User)) -->|1. Run Command| CLI[main.py]
-    CLI -->|2. Load Configs| Config[targets.json & pain_keywords.json]
-    CLI -->|3. Trigger| Fetcher[Fetcher Class]
+    User[User / CLI] -->|runs| Main[main.py]
     
-    subgraph "External Cloud"
-        Fetcher -->|API Call| Apify[Apify Actor: thewolves/appstore-reviews]
-        Apify -->|Raw Data| JSON[Raw Reviews JSON]
+    subgraph "Phase 1 & 2: ETL"
+        Main -->|orchestrates| Fetcher[Fetcher Class]
+        Fetcher -->|calls| Apify[Apify Actor]
+        Apify -->|returns| Raw[Raw Reviews JSON]
     end
     
-    Fetcher -->|4. Pass Data| Analyzer[Analyzer Class (Pandas)]
-    
-    subgraph "Local Processing (Deterministic)"
-        Analyzer -->|Filter| DF1[Last 90 Days Only]
-        DF1 -->|Calc| Slope[Slope Calculation (NumPy)]
-        DF1 -->|Search| Keywords[Regex Match vs pain_keywords.json]
-        Slope & Keywords -->|Compute| Score[Risk Score Formula]
+    subgraph "Phase 3: Analysis"
+        Main -->|feeds JSON| Analyzer[Analyzer Class]
+        Analyzer -->|calculates| Pandas[Pandas/NumPy]
+        Pandas -->|outputs| GapSchema[schema_app_gap.json]
+    end
+
+    subgraph "Phase 4: Forensic Intelligence (T-008)"
+        Analyzer -->|passes reviews_df| Forensic[ForensicAnalyzer]
+        Forensic -->|computes| NGrams[Scikit-Learn N-Grams]
+        Forensic -->|detects| Anomalies[Time-Series Events]
+        Forensic -->|outputs| MatrixJSON[reports/niche_matrix.json]
     end
     
-    Analyzer -->|5. Structured Data| Artifact[schema_app_gap.json]
-    Artifact -->|6. Render| Reporter[Reporter Class]
-    Reporter -->|7. Output| MD[report_APPNAME.md]
+    subgraph "Phase 5: Reporting"
+        Main -->|feeds IntelJSON| Reporter[Reporter Class]
+        Reporter -->|writes| MD[Markdown Reports]
+    end
 
 Data Models (Schema)
 1. Input Configuration (config/targets.json)
@@ -68,7 +72,7 @@ Data Models (Schema)
     "days_back": 90,
     "max_reviews": 500
   }
-}s
+}
 
 2. System Settings (`config/settings.json`)
 This file controls the "Thrifty" filters and "Risk Score" weights without code changes.
@@ -152,3 +156,64 @@ ROI Sanity Check
 Value Proposition: Manually analyzing 500 reviews takes ~4 hours. This script does it in 30 seconds with mathematical consistency across languages.
 
 Alignment: Perfectly fits the "Efficiency" constraint by automating the "Discovery" phase of the Venture Builder.
+
+---
+
+# 2. FORENSIC ARCHITECTURE & LOGIC UPGRADE (Phase 4)
+
+To support the "Irrefutable Evidence" requirements (T-008), the system architecture extends beyond simple counting into **pattern recognition** and **comparative intelligence**.
+
+## 2.1 New Component: `src/intelligence.py`
+* **Class:** `ForensicAnalyzer`
+* **Responsibility:** Intermediate processing layer between `Analyzer` (Statistics) and `Reporter` (Markdown). It derives *meaning* from the raw stats.
+* **Key Methods:**
+    * `detect_event_timeline(reviews_df)`: 
+        * *Logic:* Resamples data by Week (`W-MON`). Calculates `Pain Density` per week.
+        * *Output:* `List[Dict]` -> `[{week: "2023-42", density: 0.85, event: "Critical Spike"}]`
+    * `extract_semantic_clusters(text_series)`:
+        * *Logic:* Uses `sklearn.CountVectorizer` (N-Grams=2,3) on 1-2 star reviews.
+        * *Stop Words:* Custom list + App Name filtering.
+        * *Output:* `List[Tuple]` -> `[("connection failed", 45), ("premium locked", 32)]`
+    * `map_competitor_migration(text_series, competitors_list)`:
+        * *Logic:* Regex search for competitor names in "Longing" (positive context) or "Hating" (negative context) proximity.
+
+## 2.2 Updated Scoring Logic (MECE Alignment)
+
+To ensure consistency between `pain_keywords.json` and the scoring logic, the Forensic Analyzer must map keywords to pillars as follows:
+
+| MECE Pillar | Config Categories (must exist in pain_keywords.json) |
+| :--- | :--- |
+| **Functional** | `critical`, `performance`, `privacy`, `ai_quality` |
+| **Economic** | `scam_financial`, `subscription`, `broken_promise`, `ads` |
+| **Experience** | `usability`, `competitor_mention`, `generic_pain` |
+
+*Note: If `ads` or `generic_pain` are missing from the JSON config, the Analyzer should default their weight to 0 and log a warning, rather than crashing.*
+
+## 2.3 Expanded Data Schema (`reports/`)
+
+The system now generates specific JSON artifacts to decouple analysis from reporting, ensuring "Forensic" data is preserved before being rendered into Markdown.
+
+### A. Forensic Matrix (`reports/niche_matrix.json`)
+* **Purpose:** Acts as the structured data source for the "Feature/Fail" Heatmap in the Niche Report.
+* **Schema:**
+  ```json
+  {
+    "App Name A": {
+      "Functional": 85.5,
+      "Economic": 20.0,
+      "Experience": 15.0
+    },
+    "App Name B": {
+      "Functional": 10.0,
+      "Economic": 95.0,
+      "Experience": 40.0
+    }
+  }
+  ```
+* **Data Flow:** Generated by `ForensicAnalyzer.generate_matrix()` → Consumed by `Reporter.generate_niche_report()`.
+
+### B. Markdown Reports (The "Dossiers")
+* **Individual Report:** `reports/report_[APP]_[YYYY-MM-DD].md`
+    * Content: Executive Verdict, ASCII Timeline Chart, Top 3 N-Grams, Verified Quotes.
+* **Niche Report:** `reports/report_NICHE_[NAME]_[YYYY-MM-DD].md`
+    * Content: The "Battlefield" Heatmap (visualizing the Matrix JSON), Migration Flow, and "White Space" Analysis.

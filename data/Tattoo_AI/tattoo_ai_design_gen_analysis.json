@@ -1,0 +1,49 @@
+{
+  "app_name": "Tattoo_AI_Design_Gen",
+  "analysis_date": "2026-02-10",
+  "metrics": {
+    "total_reviews_90d": 9,
+    "negative_ratio": 0.889,
+    "volatility_slope": -0.0238,
+    "risk_score": 48.89
+  },
+  "signals": {
+    "broken_update_detected": true,
+    "suspected_version": "1.6.1",
+    "top_pain_categories": [
+      {
+        "category": "subscription",
+        "count": 3,
+        "weight": 6
+      },
+      {
+        "category": "scam_financial",
+        "count": 2,
+        "weight": 8
+      },
+      {
+        "category": "ai_quality",
+        "count": 2,
+        "weight": 6
+      },
+      {
+        "category": "generic_pain",
+        "count": 5,
+        "weight": 2
+      }
+    ],
+    "pillar_densities": {
+      "Functional": 0.0,
+      "Economic": 3.7778,
+      "Experience": 1.1111
+    },
+    "primary_pillar": "Economic"
+  },
+  "evidence": [
+    "THIS APP IS ABOUT ADVANCED AS A 3rd GRADE MATH TEST. Do not even try the free trial because you won’t be able to find how to log out of it or stop them from robbing you because there’s no menu or home",
+    "Inaccurate after putting description. Paid for a year but still limited in what it will produce. You have to buy more credits after it creates 60 terrible images that don’t even capture the descriptio",
+    "This app is completely useless. Its inaccurate designs were never correct or even close to what I was asking for. The free version of ChatGPT does 1 million times better don’t waste your money.",
+    "This app is absolute trash, paid for a years subscription thinking I was getting something of quality. Boy was I wrong!",
+    "This is a horrible app why would it be rated at ages 4+ when you literally have to pay just to use it. It’s a damn scam"
+  ]
+}

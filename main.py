@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Main entry point for App Store Volatility Analyzer."""
+import json
 import sys
 import os
 import argparse
@@ -17,6 +18,7 @@ from src.config_validator import (
 from src.fetcher import Fetcher
 from src.analyzer import Analyzer
 from src.reporter import Reporter
+from src.intelligence import ForensicAnalyzer
 
 
 def main():
@@ -36,13 +38,21 @@ def main():
     args = parser.parse_args()
     
     config_dir = Path(__file__).parent / "config"
-    data_dir = Path(__file__).parent / "data"
-    data_dir.mkdir(exist_ok=True)
+    base_data = Path(__file__).parent / "data"
+    base_reports = Path(__file__).parent / "reports"
     
     # Load and validate configurations
     try:
         targets_config = load_json_config(config_dir / "targets.json")
         validate_targets_config(targets_config)
+        
+        # T-016: Dynamic Niche Directories - use subfolders when niche_name is set
+        niche_name = targets_config.get("niche_name", "default")
+        niche_name = str(niche_name).replace(" ", "_").strip() or "default"
+        data_dir = base_data / niche_name
+        reports_dir = base_reports / niche_name
+        data_dir.mkdir(parents=True, exist_ok=True)
+        reports_dir.mkdir(parents=True, exist_ok=True)
         
         pain_keywords_config = load_json_config(config_dir / "pain_keywords.json")
         validate_pain_keywords_config(pain_keywords_config)
@@ -68,7 +78,8 @@ def main():
         pain_keywords_path=config_dir / "pain_keywords.json",
         settings=settings_config
     )
-    reporter = Reporter()
+    reporter = Reporter(output_dir=reports_dir)
+    forensic_analyzer = ForensicAnalyzer(pain_keywords_path=config_dir / "pain_keywords.json")
     
     # Get apps to process (smoke test: only first app)
     apps_to_process = targets_config["apps"]
@@ -81,6 +92,8 @@ def main():
     # Track processing results
     successful_apps = []
     failed_apps = []
+    analyses_for_niche = []  # Collect analyses for niche report
+    forensic_by_app = {}  # Collect forensic data per app for niche report
     
     # Process each app
     for idx, app in enumerate(apps_to_process, 1):
@@ -133,9 +146,29 @@ def main():
                 print(f"  Negative Ratio: {analysis['metrics']['negative_ratio']:.2%}")
                 
                 successful_apps.append(app["name"])
+                analyses_for_niche.append(analysis)
                 
-                # TODO: Phase 4 - Generate markdown report
-                # reporter.generate_report(app['name'], analysis, filtered_reviews)
+                # T-008: Forensic Intelligence - Run forensic analysis and generate report
+                competitor_names = [a["name"].replace(" ", "_") for a in targets_config["apps"]]
+                forensic = forensic_analyzer.run_forensic(
+                    reviews=filtered_reviews,
+                    app_name=app["name"],
+                    competitors=competitor_names,
+                )
+                # Save intelligence.json
+                intel_file = reports_dir / f"{app_safe_name}_intelligence.json"
+                with open(intel_file, "w", encoding="utf-8") as f:
+                    json.dump(forensic, f, indent=2, ensure_ascii=False)
+                print(f"✓ Saved forensic intelligence to {intel_file}")
+                
+                report_path = reporter.generate_report(
+                    app_name=app["name"],
+                    analysis=analysis,
+                    reviews=filtered_reviews,
+                    forensic=forensic,
+                )
+                print(f"✓ Generated report: {report_path}")
+                forensic_by_app[app["name"]] = forensic
             else:
                 print("⚠ No reviews to analyze")
                 successful_apps.append(f"{app['name']} (no reviews)")
@@ -183,7 +216,7 @@ def main():
             print(f"  - {failure['name']}: {failure['error']}")
     print(f"{'='*60}")
     
-    # Generate leaderboard if we have successful analyses (T-010: Aggregate Leaderboard)
+    # Generate leaderboard and niche report if we have successful analyses
     if successful_apps and not args.smoke_test:
         print(f"\n{'='*60}")
         print("GENERATING MARKET LEADERBOARD")
@@ -195,6 +228,26 @@ def main():
             print(f"✗ Failed to generate leaderboard: {e}")
             import traceback
             traceback.print_exc()
+        
+        # T-008: Generate Niche Battlefield Report and niche_matrix.json
+        if len(analyses_for_niche) >= 2:
+            try:
+                niche_matrix = forensic_analyzer.generate_matrix(analyses_for_niche)
+                matrix_file = reports_dir / "niche_matrix.json"
+                with open(matrix_file, "w", encoding="utf-8") as f:
+                    json.dump(niche_matrix, f, indent=2)
+                print(f"✓ Saved niche matrix: {matrix_file}")
+                niche_report = reporter.generate_niche_report(
+                    niche_name=niche_name,
+                    analyses=analyses_for_niche,
+                    niche_matrix=niche_matrix,
+                    forensic_by_app=forensic_by_app,
+                )
+                print(f"✓ Generated niche report: {niche_report}")
+            except Exception as e:
+                print(f"✗ Failed to generate niche report: {e}")
+                import traceback
+                traceback.print_exc()
     
     if failed_apps and not args.smoke_test:
         print(f"\n⚠ Some apps failed, but processing completed for {len(successful_apps)} apps")

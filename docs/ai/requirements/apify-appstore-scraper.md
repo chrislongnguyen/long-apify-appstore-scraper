@@ -59,7 +59,7 @@ description: Deterministic extraction and statistical analysis of "Enshittificat
 * **Formula:** A weighted composite index.
     * $$Score = (W_{recency} \times Recent\_Vol) + (W_{intensity} \times Keyword\_Severity)$$
     * **Recency:** Weight reviews from last 30 days 2x more than days 31-90.
-    * **Intensity:** Keyword matching against `pain_dictionary.json` (e.g., "fraud" = 10pts, "slow" = 2pts).
+    * **Intensity:** Keyword matching against `pain_keywords.json` (e.g., "fraud" = 10pts, "slow" = 2pts).
 * **Output:** A prioritized list of "Kill Metrics" (e.g., "Fix Login Crash to reduce Risk Score by 40 points").
 
 ## 1.5 Output Format (The Story)
@@ -73,3 +73,74 @@ The Python script must generate a Markdown file (`report_APPNAME.md`) containing
 ## 1.6 Non-Goals
 - **Out of Scope:** Sentiment Analysis via LLM (Too slow/costly). Use dictionary-based polarity instead.
 - **Out of Scope:** Historic data beyond 90 days (Not actionable).
+
+---
+
+---
+
+# 2. FORENSIC INTELLIGENCE SPECIFICATION (T-008)
+
+To achieve "Irrefutable Evidence" in reporting, the system must implement the following advanced analytical modules beyond basic descriptive statistics.
+
+## 2.1 The "Timeline of Pain" (Event Detection)
+* **Goal:** Correlate Review Volume/Sentiment with time to identify "Bad Updates."
+* **Logic:**
+    * Group reviews by `week` (ISO Calendar).
+    * **Formula:** $PainDensity = \frac{\text{Count of Reviews with Pain Keywords}}{\text{Total Reviews in Week}}$
+    * **Anomaly Detection:** Flag any week where $Density > (\mu_{rolling} + 2\sigma)$.
+* **Acceptance Criteria:**
+    * Must correctly identify known spikes (e.g., Version 2.0 launch).
+    * Must ignore/flag weeks with < 5 reviews (Noise Filter).
+    * Output must be a time-series list: `[{week: "2023-42", density: 0.85, event: "Critical Spike"}]`.
+* **Assumptions:** "Date" in reviews is localized to UTC.
+
+## 2.2 Semantic Clustering (N-Gram Analysis)
+* **Goal:** Discover *unknown* pain points that are not in `pain_keywords.json`.
+* **Library:** Use `sklearn.feature_extraction.text.CountVectorizer` or `collections.Counter`.
+* **Configuration:**
+    * `ngram_range=(2, 3)` (Look for 2-3 word phrases like "login failed", "lost data").
+    * **Universe:** Only analyze reviews with `rating <= 2` (The "Cluster of Hate").
+    * **Stop Words:** Standard English + App Name.
+* **Acceptance Criteria:**
+    * Must output at least 3 unique, non-generic phrases (e.g., "sync failed" is valid; "good app" is invalid).
+    * Must process 500 reviews in < 2 seconds.
+
+## 2.3 Competitor Migration Graphing
+* **Goal:** Identify which competitors are "stealing" users.
+* **Logic:**
+    * Load the list of `app_names` from `targets.json`.
+    * Scan the *text body* of App A's reviews for mentions of App B, C, D.
+    * **Sentiment Check:** Distinguish "Churn" (I'm leaving for X) from "Comparison" (This is better than X).
+* **Acceptance Criteria:**
+    * Correctly tags "I switched to Opal" as a Migration Event.
+    * Correctly ignores "Better than Forest" (Positive Comparison).
+
+## 2.4 The "Feature/Fail" Matrix (Output Artifact)
+* **Goal:** Comparative Heatmap for Niche Reports.
+* **Output Artifact:** `reports/niche_matrix.json`
+* **Schema Definition:**
+  ```json
+  {
+    "App Name A": {
+      "Functional": 85.5,
+      "Economic": 20.0,
+      "Experience": 15.0
+    },
+    "App Name B": {
+      "Functional": 10.0,
+      "Economic": 95.0,
+      "Experience": 40.0
+    }
+  }
+* **Acceptance Criteria:**
+    * Keys must match valid App Names from targets.json.
+    * Values must be Normalized Risk Scores (0-100).
+    * Must visually flag scores > 50 with 🔴 in the generated Markdown report.
+
+## 2.5 Data Flow Requirements
+* **Input:** The `ForensicAnalyzer` must receive the full **Raw Reviews DataFrame** (`reviews_df`), not just the calculated metrics.
+* **Reasoning:** N-Gram analysis requires the raw `text` column to detect phrases like "sync failed".
+* **Privacy:** No PII is retained; only aggregate stats and anonymized quotes are saved to Markdown.
+* **Output Artifacts:**
+    * `reports/niche_matrix.json` (The Comparative Heatmap).
+    * `reports/intelligence.json` (The Intermediate Forensic Data).

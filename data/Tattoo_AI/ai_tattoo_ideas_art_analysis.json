@@ -1,0 +1,36 @@
+{
+  "app_name": "Ai_Tattoo_Ideas_Art",
+  "analysis_date": "2026-02-10",
+  "metrics": {
+    "total_reviews_90d": 3,
+    "negative_ratio": 0.667,
+    "volatility_slope": -0.0,
+    "risk_score": 46.67
+  },
+  "signals": {
+    "broken_update_detected": true,
+    "suspected_version": "1.3.1",
+    "top_pain_categories": [
+      {
+        "category": "performance",
+        "count": 2,
+        "weight": 5
+      },
+      {
+        "category": "generic_pain",
+        "count": 2,
+        "weight": 2
+      }
+    ],
+    "pillar_densities": {
+      "Functional": 3.3333,
+      "Economic": 0.0,
+      "Experience": 1.3333
+    },
+    "primary_pillar": "Functional"
+  },
+  "evidence": [
+    "This app looks cool to download, but after downloading it, it doesn’t function anything like it shows. You click one thing it shows you a different one. It creates your images into something completel",
+    "Complete trash, do not waste your time on downloading this app, look for other apps"
+  ]
+}

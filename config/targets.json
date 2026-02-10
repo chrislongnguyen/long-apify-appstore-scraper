@@ -1,29 +1,13 @@
 {
+  "niche_name": "Tattoo_AI",
   "apps": [
-    {
-      "name": "Voicenotes_AI",
-      "url": "https://apps.apple.com/us/app/voicenotes-ai-notes-meetings/id6483293628"
-    },
-    {
-      "name": "Letterly_AI",
-      "url": "https://apps.apple.com/us/app/letterly-ai-note-taker/id6464049772"
-    },
-    {
-      "name": "Cleft_Notes",
-      "url": "https://apps.apple.com/us/app/cleft-for-verbal-thinkers/id6479458038"
-    },
-    {
-      "name": "AudioPen_Official",
-      "url": "https://apps.apple.com/us/app/audiopen/id6502638001"
-    },
-    {
-      "name": "Whisper_Memos",
-      "url": "https://apps.apple.com/us/app/whisper-memos-speech-to-text/id6443658039"
-    }
+    {"name": "Tattoo_AI_Design", "url": "https://apps.apple.com/us/app/tattoo-ai-tattoo-design/id6479689893"},
+    {"name": "Ai_Tattoo_Ideas_Art", "url": "https://apps.apple.com/us/app/ai-tattoo-ideas-art-generator/id6593679852"},
+    {"name": "Tattoo_AI_Design_HubX", "url": "https://apps.apple.com/us/app/tattoo-ai-tattoo-design/id6479689893"},
+    {"name": "AI_Ink_Tattoo_Gen", "url": "https://apps.apple.com/us/app/ai-ink-ai-tattoo-generator/id6478388353"},
+    {"name": "Tattoo_AI_Design_Gen", "url": "https://apps.apple.com/us/app/tattoo-ai-tattoo-design-generator-ink/id6736713334"},
+    {"name": "Tattoo_Ai_Art_Maker", "url": "https://apps.apple.com/us/app/tattoo-ai-art-maker/id1673771187"},
+    {"name": "Ink_AI_Design_Gen", "url": "https://apps.apple.com/us/app/ink-ai-tattoo-design-generator/id6736651465"}
   ],
-  "params": {
-    "days_back": 90,
-    "max_reviews": 500,
-    "language": "en"
-  }
+  "params": {"days_back": 90, "max_reviews": 500, "language": "en"}
 }

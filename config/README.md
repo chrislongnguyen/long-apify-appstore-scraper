@@ -4,6 +4,7 @@
 Contains the list of apps to analyze and scraping parameters.
 
 **Schema:**
+- `niche_name`: (Optional) Niche identifier for output organization. When set, files are saved to `data/{niche_name}/` and `reports/{niche_name}/`.
 - `apps`: Array of app objects with `name` and `url` fields
 - `params`: Object with `days_back` (number of days to look back) and `max_reviews` (maximum reviews to fetch)
 

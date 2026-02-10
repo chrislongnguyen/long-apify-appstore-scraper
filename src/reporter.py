@@ -12,6 +12,28 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def _extract_review_text(review: dict) -> str:
+    """Extract text from review dict."""
+    for field in ["text", "reviewText", "content", "body", "comment"]:
+        if field in review and review[field]:
+            return str(review[field])
+    title = review.get("title", "")
+    return str(title) if title else ""
+
+
+def _extract_rating(review: dict) -> Optional[int]:
+    """Extract rating from review dict."""
+    for field in ["rating", "starRating", "stars", "score"]:
+        if field in review and review[field] is not None:
+            try:
+                r = int(review[field])
+                if 1 <= r <= 5:
+                    return r
+            except (ValueError, TypeError):
+                pass
+    return None
+
+
 class Reporter:
     """
     Generates human-readable markdown reports from analysis results.
@@ -42,8 +64,27 @@ class Reporter:
         Returns:
             Markdown-formatted executive summary
         """
-        # TODO: Generate f-string summary with risk score and condition
-        pass
+        metrics = analysis.get("metrics", {})
+        signals = analysis.get("signals", {})
+        risk_score = metrics.get("risk_score", 0.0)
+        primary_pillar = signals.get("primary_pillar", "None")
+        suspected_version = signals.get("suspected_version")
+        
+        if risk_score >= 76:
+            condition = "CRITICAL"
+        elif risk_score >= 51:
+            condition = "HIGH RISK"
+        elif risk_score >= 26:
+            condition = "MODERATE"
+        else:
+            condition = "STABLE"
+        
+        verdict = f"App is in **{condition}** condition with a Risk Score of **{risk_score:.1f}/100**."
+        if primary_pillar != "None":
+            verdict += f" Primary pain pillar: **{primary_pillar}**."
+        if suspected_version:
+            verdict += f" Suspected problematic version: **{suspected_version}**."
+        return verdict
     
     def generate_evidence_section(self, analysis: Dict[str, Any]) -> str:
         """
@@ -55,37 +96,225 @@ class Reporter:
         Returns:
             Markdown-formatted evidence section
         """
-        # TODO: Format pain categories and version impact data
-        pass
+        signals = analysis.get("signals", {})
+        lines = []
+        
+        top_pain = signals.get("top_pain_categories", [])
+        if top_pain:
+            lines.append("### Primary Pain Clusters")
+            for item in top_pain[:5]:
+                cat = item.get("category", "?")
+                count = item.get("count", 0)
+                weight = item.get("weight", 0)
+                lines.append(f"- **{cat}**: {count} mentions (weight {weight})")
+        
+        if signals.get("broken_update_detected") and signals.get("suspected_version"):
+            lines.append("")
+            lines.append(f"### Version Impact: Sentiment drop detected after **{signals['suspected_version']}**")
+        
+        return "\n".join(lines) if lines else "No pain clusters identified."
     
     def generate_raw_data_sample(self, reviews: list, top_n: int = 5) -> str:
         """
         Generate raw data sample section with top reviews.
         
         Args:
-            reviews: List of review dictionaries
+            reviews: List of review dicts or evidence strings (from analysis)
             top_n: Number of reviews to include
             
         Returns:
             Markdown-formatted raw data section
         """
-        # TODO: Extract and format top N "most helpful" 1-star reviews
-        pass
+        scored = []
+        for r in reviews:
+            if isinstance(r, str):
+                text = r.strip()
+                if len(text) > 20:
+                    scored.append((1, len(text), text[:500], None))
+            else:
+                rating = _extract_rating(r)
+                text = _extract_review_text(r)
+                if rating is not None and rating <= 2 and len(text.strip()) > 20:
+                    scored.append((rating, len(text), text[:500], r))
+        scored.sort(key=lambda x: (x[0], -x[1]))  # Lower rating first, longer text first
+        
+        lines = []
+        for i, (_, _, text, _) in enumerate(scored[:top_n], 1):
+            lines.append(f"{i}. > {text[:400]}{'...' if len(text) > 400 else ''}")
+        return "\n\n".join(lines) if lines else "No qualifying negative reviews available."
     
-    def generate_report(self, app_name: str, analysis: Dict[str, Any], reviews: list = None) -> Path:
+    def _build_ascii_timeline(self, timeline: List[Dict[str, Any]], width: int = 50) -> str:
+        """Build ASCII chart of weekly pain density (T-008 Exhibit A)."""
+        if not timeline:
+            return "_No timeline data available._"
+        
+        max_density = max(t.get("density", 0) for t in timeline) or 0.01
+        lines = []
+        for t in timeline:
+            week = t.get("week", "?")
+            density = t.get("density", 0)
+            event = t.get("event", "")
+            bar_len = int((density / max_density) * width) if max_density else 0
+            bar = "█" * bar_len
+            marker = " 🔴" if event else ""
+            lines.append(f"  {week}: {bar} {density:.0%}{marker}")
+        return "```\n" + "\n".join(lines) + "\n```"
+    
+    def generate_report(
+        self,
+        app_name: str,
+        analysis: Dict[str, Any],
+        reviews: list = None,
+        forensic: Dict[str, Any] = None,
+    ) -> Path:
         """
-        Generate complete markdown report.
+        T-008: Generate complete forensic intelligence report.
         
         Args:
             app_name: Name of the app
-            analysis: Analysis results dictionary
-            reviews: Optional list of reviews for raw data sample
+            analysis: Analysis results dictionary (schema_app_gap)
+            reviews: Optional list of reviews for evidence quotes
+            forensic: Optional forensic data (timeline, clusters, migration)
             
         Returns:
             Path to generated report file
         """
-        # TODO: Combine all sections and write to report_APPNAME.md
-        pass
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        safe_name = app_name.replace(" ", "_")
+        output_path = self.output_dir / f"report_{safe_name}_{date_str}.md"
+        
+        sections = []
+        
+        # Executive Summary
+        sections.append("# Intelligence Report: " + app_name.replace("_", " "))
+        sections.append("")
+        sections.append(f"**Generated:** {date_str}")
+        sections.append("")
+        sections.append("## Executive Summary")
+        sections.append("")
+        sections.append(self.generate_executive_summary(analysis))
+        sections.append("")
+        
+        # Exhibit A: Timeline of Pain
+        if forensic and forensic.get("timeline"):
+            sections.append("## Exhibit A: Timeline of Pain")
+            sections.append("")
+            sections.append("Weekly pain density (reviews with pain keywords / total reviews):")
+            sections.append("")
+            sections.append(self._build_ascii_timeline(forensic["timeline"]))
+            sections.append("")
+        
+        # Exhibit B: Semantic Clusters (N-Grams)
+        if forensic and forensic.get("clusters"):
+            sections.append("## Exhibit B: Hidden Pain Phrases (N-Grams)")
+            sections.append("")
+            sections.append("Top pain phrases discovered in 1-2 star reviews (not in keyword dictionary):")
+            sections.append("")
+            for item in forensic["clusters"][:5]:
+                phrase = item.get("phrase", "?")
+                count = item.get("count", 0)
+                sections.append(f"- **{phrase}** ({count} occurrences)")
+            sections.append("")
+        
+        # Exhibit C: Witnesses (Evidence)
+        sections.append("## Exhibit C: Verified Quotes")
+        sections.append("")
+        sections.append(self.generate_raw_data_sample(reviews or analysis.get("evidence", []), top_n=5))
+        sections.append("")
+        
+        # Evidence Section
+        sections.append("## The Evidence")
+        sections.append("")
+        sections.append(self.generate_evidence_section(analysis))
+        
+        content = "\n".join(sections)
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        
+        logger.info(f"Saved report to {output_path}")
+        return output_path
+    
+    def generate_niche_report(
+        self,
+        niche_name: str,
+        analyses: List[Dict[str, Any]],
+        niche_matrix: Dict[str, Dict[str, float]],
+        forensic_by_app: Dict[str, Dict[str, Any]] = None,
+    ) -> Path:
+        """
+        T-008: Generate Niche Battlefield Report with Feature/Fail Matrix.
+        
+        Args:
+            niche_name: Name of the niche (e.g., "Voice_AI")
+            analyses: List of analysis dicts
+            niche_matrix: {app_name: {pillar: score}} from ForensicAnalyzer
+            forensic_by_app: Optional {app_name: forensic_data} for migration flow
+            
+        Returns:
+            Path to generated report file
+        """
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        output_path = self.output_dir / f"report_NICHE_{niche_name}_{date_str}.md"
+        
+        sections = [
+            f"# Niche Battlefield Report: {niche_name.replace('_', ' ')}",
+            "",
+            f"**Generated:** {date_str}",
+            "",
+            "## The Matrix (Feature/Fail Heatmap)",
+            "",
+            "| App | Functional | Economic | Experience |",
+            "|-----|------------|----------|------------|",
+        ]
+        
+        for app_name, pillars in niche_matrix.items():
+            func = pillars.get("Functional", 0)
+            econ = pillars.get("Economic", 0)
+            exp = pillars.get("Experience", 0)
+            f_str = f"{func:.1f} 🔴" if func > 50 else f"{func:.1f} 🟢"
+            e_str = f"{econ:.1f} 🔴" if econ > 50 else f"{econ:.1f} 🟢"
+            x_str = f"{exp:.1f} 🔴" if exp > 50 else f"{exp:.1f} 🟢"
+            sections.append(f"| {app_name.replace('_', ' ')} | {f_str} | {e_str} | {x_str} |")
+        
+        sections.append("")
+        sections.append("### Legend")
+        sections.append("- 🔴 Score > 50 (High Risk)")
+        sections.append("- 🟢 Score ≤ 50 (Low/Moderate Risk)")
+        sections.append("")
+        
+        # T-017: White Space Analysis - Identify "Low Risk, High Quality" gap
+        safe_harbors = []
+        for app_name, pillars in niche_matrix.items():
+            func = pillars.get("Functional", 0)
+            econ = pillars.get("Economic", 0)
+            if func < 30 and econ < 30:
+                safe_harbors.append(app_name.replace("_", " "))
+        sections.append("## 🏳️ White Space Analysis")
+        sections.append("")
+        if safe_harbors:
+            sections.append("**Gap Found:** " + ", ".join(safe_harbors) + " — safe harbor(s) in this niche.")
+        else:
+            sections.append("**No Gap:** All apps show elevated risk (High Opportunity for differentiation).")
+        sections.append("")
+        
+        # Migration Flow (if available)
+        if forensic_by_app:
+            sections.append("## User Migration Flow")
+            sections.append("")
+            for app_name, forensic in forensic_by_app.items():
+                migration = forensic.get("migration", [])
+                churns = [m for m in migration if m.get("type") == "churn"]
+                if churns:
+                    parts = [f"{app_name} → {m['competitor']} ({m['count']} mentions)" for m in churns]
+                    sections.append(f"- **{app_name}**: " + "; ".join(parts))
+            sections.append("")
+        
+        content = "\n".join(sections)
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        
+        logger.info(f"Saved niche report to {output_path}")
+        return output_path
     
     def aggregate_leaderboard(self, data_dir: Path = None) -> Path:
         """

@@ -1,7 +1,7 @@
 # Market Leaderboard: Screen Time & Focus Apps
 
-**Generated:** 2026-02-10 08:02:58
-**Total Apps Analyzed:** 5
+**Generated:** 2026-02-10 16:08:11
+**Total Apps Analyzed:** 4
 
 ## Risk Score Ranking (MECE Methodology)
 
@@ -9,11 +9,10 @@ Apps are ranked by Risk Score (descending). Higher scores indicate more volatili
 
 | Rank | App Name | Risk Score | Vol. Slope | Neg. Ratio (%) | Volume | Primary Pillar | Suspected Version |
 |------|----------|------------|------------|----------------|--------|----------------|-------------------|
-| 1 | Cleft Notes | 66.67 | -0.0000 | 66.7% | 3 | Functional | 1.10 |
-| 2 | Voicenotes AI | 29.38 | -0.1190 | 25.0% | 16 | Economic | 1.6.93 |
-| 3 | Letterly AI | 22.73 | -0.1091 | 27.3% | 22 | Economic | 2.2 |
-| 4 | AudioPen Official | 16.00 | 0.0000 | 20.0% | 5 | Functional | 1.8882.0 |
-| 5 | Whisper Memos | 13.75 | -0.0545 | 18.8% | 16 | Economic | 1.6.1 |
+| 1 | Tattoo AI Design Gen | 48.89 | -0.0238 | 88.9% | 9 | Economic | 1.6.1 |
+| 2 | Ai Tattoo Ideas Art | 46.67 | -0.0000 | 66.7% | 3 | Functional | 1.3.1 |
+| 3 | Tattoo AI Design | 42.72 | 0.1374 | 56.7% | 127 | Economic | None |
+| 4 | Tattoo AI Design HubX | 42.72 | 0.1374 | 56.7% | 127 | Economic | None |
 
 ## Interpretation
 

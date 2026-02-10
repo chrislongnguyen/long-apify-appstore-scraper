@@ -1,0 +1,54 @@
+{
+  "app_name": "Tattoo_AI_Design",
+  "analysis_date": "2026-02-10",
+  "metrics": {
+    "total_reviews_90d": 127,
+    "negative_ratio": 0.567,
+    "volatility_slope": 0.1374,
+    "risk_score": 42.72
+  },
+  "signals": {
+    "broken_update_detected": false,
+    "suspected_version": null,
+    "top_pain_categories": [
+      {
+        "category": "subscription",
+        "count": 32,
+        "weight": 6
+      },
+      {
+        "category": "scam_financial",
+        "count": 17,
+        "weight": 8
+      },
+      {
+        "category": "generic_pain",
+        "count": 35,
+        "weight": 2
+      },
+      {
+        "category": "critical",
+        "count": 4,
+        "weight": 10
+      },
+      {
+        "category": "ads",
+        "count": 6,
+        "weight": 4
+      }
+    ],
+    "pillar_densities": {
+      "Functional": 0.4331,
+      "Economic": 2.7717,
+      "Experience": 0.5512
+    },
+    "primary_pillar": "Economic"
+  },
+  "evidence": [
+    "I took the bait. Sat there taking the quiz with its 30 questions. Does the tattoo have meaning. Do you want your astrological sign incorporated. Sun or moon. Blah blah. Get to the end. Download and pa",
+    "They make you take a quiz that they never actually incorporate into any tattoo for you. The platform itself is very basic and not very user-friendly. He claims to work with AI but if it is the worst A",
+    "I did a free trial did not like it whatsoever. But nothing is 100% perfect for 100% of the people. I canceled within 48 hours into my seven day free trial. They have hit my debit card four months stra",
+    "This app is not capable of doing ANYTHING I asked for. If you ask for a photo to be turned into a tattoo, it quite literally looks like a photo of a stranger and it didn’t matter how many times I alte",
+    "Full of bugs, can’t even type into the prompt box without it randomly deleting words and moving your cursor around for no reason. \nThe AI doesn’t listen to what you want to create no matter what way y"
+  ]
+}
