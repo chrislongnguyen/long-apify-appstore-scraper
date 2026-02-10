@@ -1,0 +1,37 @@
+{
+  "app_name": "Whisper_Memos",
+  "analysis_date": "2026-02-10",
+  "metrics": {
+    "total_reviews_90d": 16,
+    "negative_ratio": 0.188,
+    "volatility_slope": -0.0545,
+    "risk_score": 13.75
+  },
+  "signals": {
+    "broken_update_detected": true,
+    "suspected_version": "1.6.1",
+    "top_pain_categories": [
+      {
+        "category": "subscription",
+        "count": 2,
+        "weight": 7
+      },
+      {
+        "category": "scam_financial",
+        "count": 1,
+        "weight": 8
+      }
+    ],
+    "pillar_densities": {
+      "Functional": 0.0,
+      "Economic": 1.375,
+      "Experience": 0.0
+    },
+    "primary_pillar": "Economic"
+  },
+  "evidence": [
+    "I loved this app when it worked. Suddenly it did not and I received no response to 3 emails to customer support. I’m locked in paying for this until next June and requests for a fix or a refund have b",
+    "I pay a yearly subscription, but when I open up the app the first thing I see at the top of the screen is a banner asking me to subscribe to an even higher tier. Bad experience.",
+    "I set the language to English in the settings, but it doesn’t seem to matter. There’s no help function. Canceling."
+  ]
+}

@@ -1,21 +1,22 @@
 # PROJECT HANDOFF STATUS
 
-**Generated:** 2026-02-09  
-**Session Focus:** T-011 (Analyzer Calibration), T-012 (MECE Risk Scoring), Knowledge Documentation
+**Generated:** 2026-02-10  
+**Session Focus:** T-014 (Multi-Region Support), ERROR C003 Resolution, Voice AI Niche Analysis
 
 ---
 
 ## 1. ACTIVE PHASE & CURRENT TASK ID
 
 **Current Phase:** Phase 4 (Platinum Layer - The Reporter & Aggregator)  
-**Overall Progress:** 79% (19/24 tasks)  
+**Overall Progress:** 85% (22/26 tasks)  
 **Current Task:** T-008 - Gen Markdown (Storytelling reports)  
-**Status:** ✅ Phases 1, 2 & 3 Complete | ✅ T-011 Complete | ✅ T-012 Complete | ✅ T-010 Complete | ⏳ T-008 Pending
+**Status:** ✅ Phases 1, 2 & 3 Complete | ✅ T-011, T-012, T-010, T-014, T-015 Complete | ⏳ T-008 Pending
 
-**Recent Completions:**
-- ✅ T-011: Analyzer Calibration - Fixed three critical math model anomalies (Score Inflation, Ghost Ratio, Flatline Slope)
-- ✅ T-012: Advanced Reporting (Metrics 2.0) - Implemented MECE Risk Scoring with Pillar + Boost formula
-- ✅ Knowledge Documentation - Created comprehensive docs for analyzer.py, reporter.py, and main.py
+**Recent Completions (2026-02-10):**
+- ✅ T-014: Multi-Region Support - Switched to `agents/appstore-reviews` actor, added country config
+- ✅ T-015: Knowledge Documentation Update - Updated Fetcher module docs
+- ✅ Voice AI Niche Analysis - 5 apps analyzed with market leaderboard generated
+- ✅ ERROR C003 Resolution - Fixed geo-fencing issues for niche apps
 
 ---
 
@@ -103,12 +104,18 @@
 
 ### Completion Status
 - **Phase 1 (Bronze):** 100% (3/3 tasks) ✅
-- **Phase 2 (Silver):** 100% (2/2 tasks) ✅
+- **Phase 2 (Silver):** 100% (3/3 tasks) ✅ (includes T-014)
 - **Phase 3 (Gold):** 100% (3/3 tasks) ✅
 - **Phase 4 (Platinum):** 75% (3/4 tasks) 🟡
-- **Additional Work:** 100% (4/4 tasks) ✅
+- **Additional Work:** 100% (6/6 tasks) ✅
 
-**Overall Progress:** 79% (19/24 tasks)
+**Overall Progress:** 85% (22/26 tasks)
+
+### Niches Analyzed
+| Niche | Apps | Reviews | Leaderboard |
+|-------|------|---------|-------------|
+| Digital Detox | 5 | 490 | `data/digitaldetox/market_leaderboard_digitaldetox.md` |
+| Voice AI | 5 | 62 | `data/market_leaderboard.md` |
 
 ### Active Tasks
 
@@ -153,48 +160,39 @@
 ## 5. MODIFIED FILES IN THIS SESSION
 
 ### Core Implementation Files
-1. **`src/analyzer.py`**
-   - Added `_identify_pain_keyword_reviews()` method (T-011)
-   - Added `_get_mece_pillar_mapping()` method (T-012)
-   - Added `_calculate_pillar_densities()` method (T-012)
-   - Refactored `calculate_risk_score()` to use MECE Pillar + Boost formula (T-012)
-   - Updated `calculate_slope()` to use pain-keyword reviews (T-011)
-   - Updated `analyze()` to include MECE pillar information in output
-   - Fixed evidence extraction bug (nlargest on text column)
-
-2. **`src/reporter.py`**
-   - Updated `aggregate_leaderboard()` to extract primary_pillar and suspected_version (T-012)
-   - Refactored `_generate_leaderboard_markdown()` with 8 columns (T-012)
-   - Added detailed MECE methodology footer with formula explanations
-
-3. **`main.py`**
-   - No changes in this session (already integrated T-010 leaderboard generation)
-
-### Documentation Files
-4. **`docs/ai/planning/apify-appstore-scraper.md`**
-   - Added T-011: Analyzer Calibration task specification
-   - Added T-012: Advanced Reporting (Metrics 2.0) task specification
-   - Updated progress metrics (79% overall, Phase 4 at 75%)
-   - Updated status summaries and next steps
-
-5. **`docs/ai/implementation/knowledge-analyzer.md`** (NEW)
-   - Comprehensive documentation of Analyzer class
-   - MECE Risk Scoring methodology
-   - Pipeline flow diagrams
-   - Dependencies, error handling, performance considerations
-
-6. **`docs/ai/implementation/knowledge-reporter.md`** (NEW)
-   - Leaderboard generation documentation
-   - Enhanced columns explanation
-   - Markdown generation details
-
-7. **`docs/ai/implementation/knowledge-main.md`** (NEW)
-   - ETL pipeline orchestration documentation
-   - CLI interface details
-   - Error handling and robustness features
+1. **`src/fetcher.py`** (T-014)
+   - Changed `ACTOR_ID` from `thewolves/appstore-reviews-scraper` to `agents/appstore-reviews`
+   - Added `_extract_app_id()` method to parse numeric IDs from URLs
+   - Changed from `startUrls` to `appIds` parameter (more reliable)
+   - Made `country` configurable via `settings.json` → `filters.country`
+   - Added logging for country and App ID usage
 
 ### Configuration Files
-- No changes to config files in this session
+2. **`config/settings.json`**
+   - Added `filters.country` parameter (set to `"all"` for global search)
+
+### Documentation Files
+3. **`docs/ai/planning/apify-appstore-scraper.md`**
+   - Added T-014: Multi-Region Support task
+   - Added T-015: Knowledge Documentation Update task
+   - Updated progress metrics (85% overall)
+   - Marked ERROR C003 as RESOLVED
+   - Added Niches Analyzed table
+
+4. **`docs/ai/implementation/knowledge-fetcher.md`** (UPDATED)
+   - Documented actor switch to `agents/appstore-reviews`
+   - Documented App ID extraction method
+   - Documented country config and multi-region support
+   - Updated diagrams and metadata
+
+### Data Files Generated
+5. **Voice AI Niche** (`data/`)
+   - `voicenotes_ai_reviews.json`, `voicenotes_ai_analysis.json`
+   - `letterly_ai_reviews.json`, `letterly_ai_analysis.json`
+   - `cleft_notes_reviews.json`, `cleft_notes_analysis.json`
+   - `audiopen_official_reviews.json`, `audiopen_official_analysis.json`
+   - `whisper_memos_reviews.json`, `whisper_memos_analysis.json`
+   - `market_leaderboard.md`
 
 ---
 
@@ -275,6 +273,15 @@
 ### Current Blockers
 - **None** - T-008 is ready to start (all dependencies complete)
 
+### Resolved Issues (This Session)
+- **ERROR C003 "Got no reviews"** ✅ RESOLVED
+  - **Root Cause:** `thewolves/appstore-reviews-scraper` actor had reliability issues with niche apps; reviews are geo-fenced by country
+  - **Resolution:** 
+    1. Switched to `agents/appstore-reviews` actor (faster, more reliable)
+    2. Added `_extract_app_id()` to use `appIds` parameter (more reliable than `startUrls`)
+    3. Made `country` configurable via `settings.json`
+    4. Set `country: "all"` for global App Store search
+
 ### Potential Risks
 - **T-008 Complexity:** Markdown report generation may require careful formatting
   - **Mitigation:** Follow existing leaderboard markdown generation patterns
@@ -284,23 +291,34 @@
 ### Technical Debt
 - Pillar mapping is hardcoded in `_get_mece_pillar_mapping()` (should be configurable)
 - Evidence selection uses text length as proxy (not ideal, but functional)
+- Critical keywords in fetcher are hardcoded (should load from `pain_keywords.json`)
 
 ---
 
 ## 9. METRICS & VALIDATION
 
-### Test Results (T-011 & T-012)
-- **Risk Score Normalization:** ✅ Fixed (43.54 vs previous 93.0 inflated score)
-- **Negative Ratio:** ✅ Fixed (7.0% vs previous 0.0% ghost ratio)
-- **Volatility Slope:** ✅ Fixed (-0.0455 vs previous 0.0 flatline)
-- **MECE Pillars:** ✅ Working (Functional: 1.4918, Economic: 1.1803, Experience: 0.0984)
-- **Leaderboard:** ✅ Generated successfully with all 8 columns
+### Test Results (T-014 - Voice AI Niche)
+- **Apify Actor:** `agents/appstore-reviews` ✅ Working
+- **Country Config:** `"all"` ✅ Working (global search)
+- **App ID Extraction:** ✅ Working (extracted from URLs)
+- **Reviews Fetched:** 62 reviews across 5 apps
+- **Leaderboard:** ✅ Generated with MECE Risk Scoring
+
+### Voice AI Leaderboard Results
+| Rank | App | Risk Score | Vol. Slope | Neg. Ratio | Volume |
+|------|-----|------------|------------|------------|--------|
+| 1 | Cleft Notes | 66.67 | -0.0000 | 66.7% | 3 |
+| 2 | Voicenotes AI | 29.38 | -0.1190 | 25.0% | 16 |
+| 3 | Letterly AI | 22.73 | -0.1091 | 27.3% | 22 |
+| 4 | AudioPen Official | 16.00 | 0.0000 | 20.0% | 5 |
+| 5 | Whisper Memos | 13.75 | -0.0545 | 18.8% | 16 |
 
 ### Code Quality
 - All code compiles without errors
-- Knowledge documentation complete
+- Knowledge documentation updated
 - Planning documentation up-to-date
+- Git commit pending
 
 ---
 
-**Status:** Ready for T-008 implementation. All dependencies met, system is stable and validated.
+**Status:** Ready for T-008 implementation. Pipeline fully operational with two niches analyzed (Digital Detox, Voice AI).

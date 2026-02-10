@@ -1,0 +1,35 @@
+{
+  "app_name": "AudioPen_Official",
+  "analysis_date": "2026-02-10",
+  "metrics": {
+    "total_reviews_90d": 5,
+    "negative_ratio": 0.2,
+    "volatility_slope": 0.0,
+    "risk_score": 16.0
+  },
+  "signals": {
+    "broken_update_detected": true,
+    "suspected_version": "1.8882.0",
+    "top_pain_categories": [
+      {
+        "category": "performance",
+        "count": 1,
+        "weight": 5
+      },
+      {
+        "category": "usability",
+        "count": 1,
+        "weight": 3
+      }
+    ],
+    "pillar_densities": {
+      "Functional": 1.0,
+      "Economic": 0.0,
+      "Experience": 0.6
+    },
+    "primary_pillar": "Functional"
+  },
+  "evidence": [
+    "The app had great potential when it launched, but it seems that the developer has lost active interest. It has hardly added any new features for over a year."
+  ]
+}

@@ -1,24 +1,24 @@
 {
   "apps": [
     {
-      "name": "Opal_Screen_Time",
-      "url": "https://apps.apple.com/us/app/opal-screen-time-control/id1497465230"
+      "name": "Voicenotes_AI",
+      "url": "https://apps.apple.com/us/app/voicenotes-ai-notes-meetings/id6483293628"
     },
     {
-      "name": "Forest_Focus",
-      "url": "https://apps.apple.com/us/app/forest-focus-for-productivity/id866450515"
+      "name": "Letterly_AI",
+      "url": "https://apps.apple.com/us/app/letterly-ai-note-taker/id6464049772"
     },
     {
-      "name": "Freedom_Blocker",
-      "url": "https://apps.apple.com/us/app/freedom-screen-time-control/id1269788228"
+      "name": "Cleft_Notes",
+      "url": "https://apps.apple.com/us/app/cleft-for-verbal-thinkers/id6479458038"
     },
     {
-      "name": "StayFree_Tracker",
-      "url": "https://apps.apple.com/us/app/stayfree-block-apps-sites/id1631132311"
+      "name": "AudioPen_Official",
+      "url": "https://apps.apple.com/us/app/audiopen/id6502638001"
     },
     {
-      "name": "OneSec_Mindfulness",
-      "url": "https://apps.apple.com/us/app/one-sec-screen-time-focus/id1532875441"
+      "name": "Whisper_Memos",
+      "url": "https://apps.apple.com/us/app/whisper-memos-speech-to-text/id6443658039"
     }
   ],
   "params": {

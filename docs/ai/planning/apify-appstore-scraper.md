@@ -2,25 +2,24 @@
 phase: planning
 title: Execution Plan - App Volatility Analyzer
 description: Step-by-step implementation matrix for the Python ETL pipeline (Fetcher -> Analyzer -> Reporter).
-last_updated: 2026-02-09
+last_updated: 2026-02-10
 ---
 
 # QUICK STATUS SUMMARY
 
 **Current Phase:** Phase 4 (Platinum Layer - The Reporter & Aggregator)  
-**Overall Progress:** 79% (19/24 tasks)  
+**Overall Progress:** 83% (20/24 tasks)  
 **Next Task:** T-008 - Gen Markdown (Storytelling reports)  
-**Status:** ✅ Phases 1, 2 & 3 Complete | ✅ T-011 Complete | ✅ T-012 Complete | ✅ T-010 Complete | ⏳ T-008 Pending
+**Status:** ✅ Phases 1, 2 & 3 Complete | ✅ T-011, T-012, T-010, T-014 Complete | ⏳ T-008 Pending
 
-**Recent Achievements:**
-- ✅ Apify integration working (100+ reviews fetched successfully)
-- ✅ Config-driven filtering implemented
-- ✅ Bug fixes: URL format, datetime handling, error responses
-- ✅ Knowledge documentation created
-- ✅ Analyzer implemented: Pandas/NumPy slope calculation, keyword density, risk scoring
-- ✅ schema_app_gap.json generation working
-- ✅ Loop robustness: Batch processing with error handling (all 5 apps processed)
-- ✅ Aggregate Leaderboard: Market comparison table generated (`data/market_leaderboard.md`)
+**Recent Achievements (2026-02-10):**
+- ✅ Switched Apify actor to `agents/appstore-reviews` (faster, more reliable)
+- ✅ Added App ID extraction from URLs (`_extract_app_id()` method)
+- ✅ Made country configurable via `settings.json` → `filters.country`
+- ✅ Implemented `country: "all"` support for niche apps
+- ✅ Successfully fetched Voice AI niche (5 apps, 62 reviews total)
+- ✅ Market leaderboard generated: Cleft Notes (66.67), Voicenotes AI (29.38), Letterly AI (22.73)
+- ✅ Knowledge documentation updated for Fetcher module
 
 ---
 
@@ -188,6 +187,22 @@ last_updated: 2026-02-09
   - `test_apify_format.py` - Apify format verification
 * **Status:** ✅ Done
 
+## T-014: Multi-Region Support ✅
+* **User Story:** As a Researcher, I need to fetch reviews from all App Store regions for niche apps with limited US reviews.
+* **Actions:**
+  - Switched Apify actor from `thewolves/appstore-reviews-scraper` to `agents/appstore-reviews` (faster, more reliable)
+  - Added `_extract_app_id()` method to parse numeric App IDs from URLs
+  - Changed from `startUrls` to `appIds` parameter (more reliable)
+  - Made `country` configurable via `settings.json` → `filters.country`
+  - Added support for `"all"` to search all App Store countries
+* **Impact:** Resolved ERROR C003 for niche apps with limited regional reviews
+* **Status:** ✅ Done
+
+## T-015: Knowledge Documentation Update ✅
+* **Action:** Updated `docs/ai/implementation/knowledge-fetcher.md` with latest changes
+* **Covered:** Actor switch, App ID extraction, country config, multi-region support
+* **Status:** ✅ Done
+
 ---
 
 # 6. CURRENT STATUS SUMMARY
@@ -265,41 +280,34 @@ last_updated: 2026-02-09
 
 ## Immediate Next Steps (Priority Order)
 
-1. **T-011: Analyzer Calibration** 🔴 CRITICAL (BLOCKING T-010 & T-008)
-   - **Why:** Three critical data anomalies invalidate current leaderboard rankings:
-     - Risk Score inflation (no volume normalization): Opal reached 93.0 with inflated counts
-     - Ghost Ratio (0.0% negative): Hardcoded to low-star reviews, ignores pain-keyword 5-stars
-     - Flatline Slope (0.0000): np.polyfit receives zero qualifying reviews
-   - **Dependencies:** ✅ T-009 (Loop Robustness complete)
-   - **Estimated Effort:** 2-3 hours for fixes + 1 hour testing
-   - **Key Tasks:**
-     - Fix normalize formula in `calculate_risk_score()` (line 233)
-     - Redefine negative_count to include pain-keyword matches (lines 310-312)
-     - Recalculate slope using keyword density trend instead of low-star counts (lines 114-131)
-   - **Blockers:** None - ready to start immediately
-   - **Validation:** Regenerate leaderboard and verify metrics are in valid ranges
-
-2. **T-010: Aggregate Leaderboard** ✅ Complete (Awaiting T-011 Validation)
-   - **Status:** Already implemented, will need re-run after T-011 fixes
-   - **Dependencies:** T-011 (math calibration)
-   - **Output:** `data/market_leaderboard.md` with corrected rankings
-
-3. **T-008: Generate Markdown Reports** 🟡 Medium Priority (Next after T-011)
-   - **Why:** Final deliverable for end-to-end pipeline (individual app reports)
-   - **Dependencies:** T-011 (corrected metrics), T-010 (leaderboard)
+1. **T-008: Generate Markdown Reports** 🔴 HIGH PRIORITY (Last Remaining Task)
+   - **Why:** Final deliverable for end-to-end pipeline (individual app reports with storytelling)
+   - **Dependencies:** ✅ T-010, T-011, T-012 all complete
    - **Estimated Effort:** 2-3 hours
+   - **Key Deliverables:**
+     - Individual app markdown reports with executive summary
+     - Pain point breakdown by MECE pillar
+     - Evidence excerpts (sample reviews)
+     - Recommendations based on risk score
+   - **Blockers:** None - all dependencies met
+
+## Completed Since Last Update
+
+- ✅ **T-014: Multi-Region Support** - Switched to `agents/appstore-reviews`, added country config
+- ✅ **T-015: Knowledge Documentation** - Updated Fetcher knowledge docs
+- ✅ **Voice AI Niche Analysis** - 5 apps analyzed, leaderboard generated
 
 ## Risks & Blockers
 
-### CRITICAL ISSUE: Math Model Mismatch (T-011 Required)
-- **Issue:** Three interconnected logic anomalies in `src/analyzer.py` invalidate current metrics
-  1. **Score Inflation (Lines 228-233):** Risk scores unbounded due to lack of normalization
-  2. **Ghost Ratio (Lines 310-312):** Negative ratio always 0.0% because definition excludes pain-keyword 5-stars
-  3. **Flatline Slope (Lines 114-131):** Volatility always 0.0000 because polyfit receives zero qualifying reviews
-- **Root Cause:** Semantic mismatch between fetcher (5-star + pain keywords) and analyzer (traditional 1-2 star negatives)
-- **Blocker Status:** Blocks validation of T-010 output; must fix before T-008
-- **Mitigation:** T-011 task created to systematically fix all three issues
-- **Timeline Impact:** +1-2 hours to project timeline for fixes + validation
+### RESOLVED: ERROR C003 "No Reviews" Issue
+- **Issue:** Apify actor returning no reviews for niche apps
+- **Root Cause:** Regional geo-fencing + actor reliability issues
+- **Resolution:** 
+  - Switched to `agents/appstore-reviews` actor (faster, more reliable)
+  - Added `appIds` parameter extraction from URLs
+  - Made `country` configurable (`settings.json` → `filters.country`)
+  - Set `country: "all"` for global search
+- **Status:** ✅ RESOLVED - Voice AI niche now fetching successfully
 
 ## Coordination Needed
 
@@ -311,19 +319,25 @@ last_updated: 2026-02-09
 
 ## Completion Status
 - **Phase 1:** 100% (3/3 tasks) ✅
-- **Phase 2:** 100% (2/2 tasks) ✅
+- **Phase 2:** 100% (3/3 tasks) ✅ (includes T-014)
 - **Phase 3:** 100% (3/3 tasks) ✅
 - **Phase 4:** 75% (3/4 tasks) 🟡 (T-011, T-012 & T-010 Complete, T-008 Pending)
-- **Additional Work:** 100% (4/4 tasks) ✅
+- **Additional Work:** 100% (6/6 tasks) ✅
 
-**Overall Progress:** 79% (19/24 tasks including additional work)
+**Overall Progress:** 85% (22/26 tasks including additional work)
 
-**Status:** T-012 (MECE Risk Scoring) complete - Pillar + Boost formula implemented, enhanced leaderboard with pillar insights
+**Status:** T-014 (Multi-Region Support) complete - Fetcher now supports global country search
 
 ## Timeline Status
 - **M1 (Bronze):** ✅ Complete (Day 1 target met)
 - **M2 (Silver):** ✅ Complete (Day 1 target met)
 - **M3 (Gold):** ✅ Complete (Day 2 target met)
-- **M4 (Platinum):** ⏳ Pending (Day 2 target)
+- **M4 (Platinum):** ⏳ In Progress (Day 2 target) - T-008 remaining
 
-**Status:** Ahead of schedule! Phase 3 complete. Ready for Phase 4 (Report generation).
+## Niches Analyzed
+| Niche | Apps | Reviews | Status |
+|-------|------|---------|--------|
+| Digital Detox | 5 | 490 | ✅ Complete |
+| Voice AI | 5 | 62 | ✅ Complete |
+
+**Status:** Pipeline fully operational! Ready for T-008 (Individual app reports).

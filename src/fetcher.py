@@ -26,7 +26,9 @@ class Fetcher:
     """
     
     # Apify actor ID for App Store Reviews Scraper
-    ACTOR_ID = "thewolves/appstore-reviews-scraper"
+    # Using agents/appstore-reviews which is faster (200 reviews/sec) and more reliable
+    # Alternative: "thewolves/appstore-reviews-scraper" (if agents version has issues)
+    ACTOR_ID = "agents/appstore-reviews"
     
     def __init__(self, apify_token: Optional[str] = None, settings: Optional[Dict[str, Any]] = None):
         """
@@ -49,6 +51,23 @@ class Fetcher:
         self.settings = settings or {}
         self.filters = self.settings.get("filters", {})
         logger.info("Apify client initialized successfully")
+    
+    def _extract_app_id(self, app_url: str) -> Optional[str]:
+        """
+        Extract App Store ID from URL.
+        
+        Args:
+            app_url: App Store URL (e.g., https://apps.apple.com/us/app/voicenotes-ai/id6499420042)
+            
+        Returns:
+            App ID as string (e.g., "6499420042") or None if extraction fails
+        """
+        import re
+        # Pattern: /id followed by digits at the end of the URL
+        match = re.search(r'/id(\d+)', app_url)
+        if match:
+            return match.group(1)
+        return None
     
     @retry(
         stop=stop_after_attempt(3),
@@ -81,20 +100,28 @@ class Fetcher:
         logger.info(f"Fetching reviews from Apify actor: {app_url} (max_items={max_items})")
         
         try:
-            # Run the actor - pass a list of URL strings (not objects)
-            # Format: ["https://apps.apple.com/..."] (array of strings)
-            start_urls = [str(app_url).strip()]
+            # Extract App ID from URL - more reliable than passing full URL
+            # The Apify actor documentation states appIds should be "without id"
+            app_id = self._extract_app_id(app_url)
             
-            # Build run input
+            # Build run input - prefer appIds over startUrls for reliability
+            # App Store reviews are geo-fenced - must explicitly set country
+            # Use "all" to search all countries (useful for niche apps with limited US reviews)
+            country = self.filters.get("country", "us")
             run_input = {
-                "startUrls": start_urls,  # Array of URL strings, not objects
                 "maxItems": max_items,
+                "country": country,  # App Store country - "us", "gb", "all", etc.
             }
+            logger.info(f"Using country: {country}")
             
-            # Add country codes if not already in URL (to get more reviews)
-            # The actor will try multiple regions
-            if "country" not in str(run_input):
-                run_input["countryCode"] = "us"  # Default to US, can be overridden
+            if app_id:
+                # Use appIds (more reliable) - array of ID strings without "id" prefix
+                run_input["appIds"] = [app_id]
+                logger.info(f"Using App ID: {app_id}")
+            else:
+                # Fallback to startUrls if ID extraction fails
+                run_input["startUrls"] = [str(app_url).strip()]
+                logger.warning(f"Could not extract App ID, falling back to URL")
             
             logger.debug(f"Apify input: {run_input}")
             

@@ -1,6 +1,6 @@
 # Market Leaderboard: Screen Time & Focus Apps
 
-**Generated:** 2026-02-10 08:02:58
+**Generated:** 2026-02-10 07:39:57
 **Total Apps Analyzed:** 5
 
 ## Risk Score Ranking (MECE Methodology)
@@ -9,11 +9,11 @@ Apps are ranked by Risk Score (descending). Higher scores indicate more volatili
 
 | Rank | App Name | Risk Score | Vol. Slope | Neg. Ratio (%) | Volume | Primary Pillar | Suspected Version |
 |------|----------|------------|------------|----------------|--------|----------------|-------------------|
-| 1 | Cleft Notes | 66.67 | -0.0000 | 66.7% | 3 | Functional | 1.10 |
-| 2 | Voicenotes AI | 29.38 | -0.1190 | 25.0% | 16 | Economic | 1.6.93 |
-| 3 | Letterly AI | 22.73 | -0.1091 | 27.3% | 22 | Economic | 2.2 |
-| 4 | AudioPen Official | 16.00 | 0.0000 | 20.0% | 5 | Functional | 1.8882.0 |
-| 5 | Whisper Memos | 13.75 | -0.0545 | 18.8% | 16 | Economic | 1.6.1 |
+| 1 | Forest Focus | 45.77 | -0.4848 | 44.2% | 163 | Economic | 5.1.3 |
+| 2 | Opal Screen Time | 42.14 | 0.5440 | 26.3% | 255 | Functional | None |
+| 3 | Freedom Blocker | 19.44 | 0.0833 | 17.9% | 39 | Economic | 6.59 |
+| 4 | OneSec Mindfulness | 11.08 | 0.0714 | 13.8% | 29 | Functional | 5.1 |
+| 5 | StayFree Tracker | 7.50 | 0.0000 | 25.0% | 4 | Experience | 3.2 |
 
 ## Interpretation
 

@@ -1,24 +1,67 @@
 {
-  "categories": {
+  "pain_categories": {
     "critical": {
-      "keywords": ["crash", "freeze", "broken", "error", "bug", "glitch", "đơ", "lỗi", "sập"],
-      "weight": 10
+      "weight": 10,
+      "keywords": [
+        "crash", "freeze", "force close", "black screen", "won't open",
+        "data loss", "deleted", "wiped", "disappeared", "lost my",
+        "boot loop", "bricked", "draining battery", "overheat",
+        "lock out", "locked me out", "zombie", "unblock"
+      ]
     },
     "scam_financial": {
-      "keywords": ["scam", "fraud", "steal", "money", "charge", "refund", "lừa đảo", "tiền", "phí"],
-      "weight": 8
+      "weight": 8,
+      "keywords": [
+        "scam", "fraud", "thief", "stole", "unauthorized",
+        "charged me", "double charge", "refund", "money back",
+        "bait and switch", "hidden fee", "predatory", "robbery"
+      ]
+    },
+    "broken_promise": {
+      "weight": 7,
+      "keywords": [
+        "grandfathered", "legacy", "previous version", "used to be free",
+        "paywall", "locked behind", "removed feature", "lifetime",
+        "restore purchase", "pro version", "premium only"
+      ]
     },
     "subscription": {
-      "keywords": ["subscription", "cancel", "billing", "charge", "auto-renew", "đăng ký", "hủy", "thanh toán"],
-      "weight": 7
+      "weight": 6,
+      "keywords": [
+        "subscription", "monthly", "yearly", "too expensive",
+        "greedy", "cash grab", "ripoff", "overpriced",
+        "billing", "cancel", "renewal", "trial"
+      ]
+    },
+    "ai_quality": {
+      "weight": 6,
+      "keywords": [
+        "hallucinate", "inaccurate", "wrong text", "gibberish",
+        "cut off", "limit", "quota", "credits", "stopped recording",
+        "transcription error", "didn't catch", "missed words"
+      ]
     },
     "performance": {
-      "keywords": ["slow", "lag", "freeze", "loading", "timeout", "chậm", "đơ", "tải"],
-      "weight": 5
+      "weight": 5,
+      "keywords": [
+        "slow", "lag", "buggy", "glitch", "delay",
+        "disconnect", "server error", "network error", "offline",
+        "sync", "loading", "spin"
+      ]
+    },
+    "privacy": {
+      "weight": 9,
+      "keywords": [
+        "privacy", "data selling", "spy", "tracking", "permissions",
+        "unsafe", "security", "breach", "leak", "clipboard"
+      ]
     },
     "usability": {
-      "keywords": ["confusing", "complicated", "hard", "difficult", "khó", "phức tạp", "không hiểu"],
-      "weight": 3
+      "weight": 3,
+      "keywords": [
+        "confusing", "hard to use", "cluttered", "ugly",
+        "update ruined", "new ui", "navigation", "can't find"
+      ]
     }
   }
 }
