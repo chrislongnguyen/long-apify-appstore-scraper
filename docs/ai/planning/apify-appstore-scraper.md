@@ -7,10 +7,10 @@ last_updated: 2026-02-10
 
 # QUICK STATUS SUMMARY
 
-**Current Phase:** Phase 5 (Refactoring & Optimization)  
-**Overall Progress:** 100% (27/27 tasks)  
-**Next Task:** None - All tasks complete  
-**Status:** ✅ Phases 1-5 Complete
+**Current Phase:** Phase 6 (The Architect)  
+**Overall Progress:** Phases 1-5 Complete; Phase 6 Active  
+**Next Task:** T-020 (Integrate Reddit) or T-023 (Build AI Client) — no deps  
+**Status:** ✅ Phases 1-5 Complete → 🚧 Phase 6 In Progress
 
 **Recent Achievements (2026-02-10):**
 - ✅ T-016 to T-019: Niche dirs, White Space, Migration refinement, Forensic tests
@@ -71,6 +71,15 @@ last_updated: 2026-02-10
 | **T-018** | **Refine Migration** | *Accurately* (Strict Regex) | **Low (2)** | ✅ Done |
 | **T-019** | **Forensic Unit Tests** | *Robustly* (Pytest) | **Med (3)** | ✅ Done |
 
+## PHASE 6: THE ARCHITECT (Generative & Prescriptive)
+| ID | Task (Verb) | Target Outcome (Adverb) | Risk Factor | Deps |
+| :--- | :--- | :--- | :--- | :--- |
+| **T-020** | **Integrate Reddit** | *Broadly* (Fetch Feature Requests) | **Med (5)** | None |
+| **T-021** | **Detect Whales** | *Surgically* (Filter via Heuristics) | **Low (2)** | T-006 |
+| **T-022** | **Calc Revenue Leak** | *Financially* (Fermi Estimation) | **Low (3)** | T-021 |
+| **T-023** | **Build AI Client** | *Securely* (Gemini/OpenAI Wrapper) | **Med (4)** | None |
+| **T-024** | **Gen Anti-Roadmap** | *Creatively* (LLM Prompt Engineering) | **High (8)** | T-020, T-023 |
+
 ---
 
 # 3. DETAILED SPECIFICATIONS (Phase 5 Tasks)
@@ -107,21 +116,59 @@ last_updated: 2026-02-10
 
 ---
 
+## 3.1 Phase 6: Detailed Specifications
+
+### T-024: Generate Anti-Roadmap (Invert Pain → User Stories)
+
+* **User Story:** As a Venture Architect, I want pain clusters from App Store reviews (and Reddit) inverted into actionable User Stories so I can build a prioritized MVP roadmap without bias.
+
+* **Prompt Strategy:**
+
+1. **Input Context Assembly:**
+   * **Negative Clusters:** `top_pain_categories` from `schema_app_gap` (e.g., "critical", "scam_financial", "subscription").
+   * **N-Gram Phrases:** `extract_semantic_clusters` output (e.g., "sync failed", "premium locked").
+   * **Reddit Feature Requests:** Titles and body of "Feature Requests" / "Alternatives" threads from `apify/reddit-scraper`.
+   * **Whale Evidence:** Quotes from reviews with length > 40 words or domain vocabulary (3x-5x weighted).
+
+2. **Inversion Rule (Prompt Template):**
+   * **Rule:** For each pain cluster, ask the LLM to output *exactly one* User Story in the format: *"As a [User], I want [Feature] so that [Benefit]."*
+   * **Example:** Pain Cluster `"Crash on Export"` → *"As a Pro User, I want 4K video export to complete reliably so that I can deliver client work without data loss."*
+   * **Constraint:** Do not invent features not implied by the pain cluster. Stay grounded in the source evidence.
+
+3. **Output Format:**
+   * **Artifact:** `reports/{niche_name}/roadmap_mvp.md`
+   * **Structure:**
+     * Executive Summary (1–2 sentences: niche focus, high-priority gaps).
+     * Prioritized User Stories (ranked by evidence volume + Whale multiplier).
+     * Revenue Leakage Estimate (if available from T-022).
+     * Reddit-Informed Additions (feature requests from Reddit not in App Store data).
+
+4. **LLM Provider:** Gemini (primary) or OpenAI (fallback). Use `ai_client.py` wrapper; no math/stats in LLM.
+
+5. **Acceptance Criteria:**
+   * At least 3 User Stories per niche from pain clusters.
+   * Each User Story must be traceable to at least one pain cluster or N-Gram phrase.
+   * Reddit data must be explicitly labeled when used as source.
+
+---
+
 # 4. RESOURCE & BUDGET TRACKER
 | Metric | Current Usage | Hard Limit | Status |
 | :--- | :--- | :--- | :--- |
-| **Financial Cost** | ~$0.05 | $5.00 | 🟢 Safe |
+| **Financial Cost (Apify)** | ~$0.05 | $5.00 | 🟢 Safe |
+| **LLM API Costs** | TBD (Phase 6) | $5.00 | ⏳ Placeholder |
 | **API Calls** | ~8 successful runs | N/A | 🟢 Safe |
 | **Reviews Fetched** | ~300+ reviews | N/A | 🟢 Safe |
 
 ---
 
-# 5. NEXT ACTIONS (Phase 5 Execution)
+# 5. NEXT ACTIONS (Phase 6 Execution)
 
-1.  **Execute T-016 (File Org):** Update `targets.json` and `main.py` to support `niche_name` subdirectories.
-2.  **Execute T-017 (White Space):** Add the analysis logic to `Reporter`.
-3.  **Execute T-018 (Migration):** tighten the Regex in `Intelligence`.
-4.  **Execute T-019 (Tests):** Write the `pytest` suite.
+1.  **Execute T-020 (Integrate Reddit):** Create `src/fetcher_reddit.py`; adapter for `apify/reddit-scraper`.
+2.  **Execute T-023 (Build AI Client):** Create `src/ai_client.py`; Gemini/OpenAI wrapper for text synthesis.
+3.  **Execute T-021 (Detect Whales):** Add heuristic to `Architect`; filter reviews with length > 40 words or domain vocab.
+4.  **Execute T-022 (Calc Revenue Leak):** Add Fermi estimation formula to `Architect`.
+5.  **Execute T-024 (Gen Anti-Roadmap):** Implement prompt strategy; output `roadmap_mvp.md`.
 
 ---
 
@@ -131,4 +178,5 @@ last_updated: 2026-02-10
 - **Phase 1-3:** 100% ✅
 - **Phase 4:** 100% ✅ (T-008 Complete)
 - **Phase 5:** 100% ✅ (T-016 to T-019 Complete)
+- **Phase 6:** 0% 🚧 (T-020 to T-024 pending)
 

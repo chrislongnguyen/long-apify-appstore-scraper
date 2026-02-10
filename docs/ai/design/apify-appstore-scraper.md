@@ -8,7 +8,7 @@ description: Technical architecture for the deterministic extraction and statist
 
 ## 1.1 Feature Definition
 * **Noun (The Tool):** `AppVolatilityAnalyzer` (CLI Tool)
-    * **Core Function:** A Python-based ETL pipeline that orchestrates the Apify `apple-store-reviews` Actor, ingests raw JSON, performs statistical analysis (Trend/Slope/Keyword Density) using Pandas, and outputs a "Risk Scorecard" for target apps.
+    * **Core Function:** A Python-based ETL pipeline that orchestrates the Apify `agents/appstore-reviews` Actor, ingests raw JSON, performs statistical analysis (Trend/Slope/Keyword Density) using Pandas, and outputs a "Risk Scorecard" for target apps.
 
 ## 1.2 Effectiveness Attributes
 * **Sustainability Adjectives (Robustness):**
@@ -39,40 +39,63 @@ graph TD
     
     subgraph "Phase 1 & 2: ETL"
         Main -->|orchestrates| Fetcher[Fetcher Class]
-        Fetcher -->|calls| Apify[Apify Actor]
+        Fetcher -->|calls| Apify[agents/appstore-reviews]
         Apify -->|returns| Raw[Raw Reviews JSON]
     end
     
     subgraph "Phase 3: Analysis"
         Main -->|feeds JSON| Analyzer[Analyzer Class]
         Analyzer -->|calculates| Pandas[Pandas/NumPy]
-        Pandas -->|outputs| GapSchema[schema_app_gap.json]
+        Pandas -->|outputs| GapSchema["data/{niche}/{app}_analysis.json"]
     end
 
     subgraph "Phase 4: Forensic Intelligence (T-008)"
         Analyzer -->|passes reviews_df| Forensic[ForensicAnalyzer]
         Forensic -->|computes| NGrams[Scikit-Learn N-Grams]
         Forensic -->|detects| Anomalies[Time-Series Events]
-        Forensic -->|outputs| MatrixJSON[reports/niche_matrix.json]
+        Forensic -->|outputs| MatrixJSON["reports/{niche}/niche_matrix.json"]
+        Forensic -->|outputs| IntelJSON["reports/{niche}/{app}_intelligence.json"]
     end
     
     subgraph "Phase 5: Reporting"
-        Main -->|feeds IntelJSON| Reporter[Reporter Class]
-        Reporter -->|writes| MD[Markdown Reports]
+        Main -->|feeds schema_app_gap + IntelJSON| Reporter[Reporter Class]
+        Reporter -->|writes| MD["reports/{niche}/report_*.md"]
     end
 
-Data Models (Schema)
-1. Input Configuration (config/targets.json)
+    subgraph "Phase 6: The Architect (Generative)"
+        Main -->|invokes after Phase 5| Architect[Architect Class]
+        AppData["niche_matrix.json + top_pain_categories"] --> Architect
+        RedditFetcher[fetcher_reddit.py] -->|apify/reddit-scraper| RedditData[Feature Requests]
+        RedditData --> Architect
+        Architect -->|orchestrates| AIClient[ai_client.py LLM]
+        AIClient -->|Gemini/OpenAI| Roadmap["reports/{niche}/roadmap_mvp.md"]
+    end
+```
+
+### Data Models (Schema)
+
+**1. Input Configuration (`config/targets.json`)**
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `niche_name` | string | Niche identifier; used for `data/{niche_name}/` and `reports/{niche_name}/` subdirectories. |
+| `apps` | array | List of app objects with `name` and `url` (App Store URL). |
+| `params` | object | Fetch parameters: `days_back`, `max_reviews`, `language`. |
+
+```json
 {
+  "niche_name": "Tattoo_AI",
   "apps": [
-    { "name": "CompetitorX", "url": "[https://apps.apple.com/](https://apps.apple.com/)..." },
-    { "name": "IncumbentY", "url": "[https://apps.apple.com/](https://apps.apple.com/)..." }
+    { "name": "CompetitorX", "url": "https://apps.apple.com/...", "price": 4.99 },
+    { "name": "IncumbentY", "url": "https://apps.apple.com/..." }
   ],
   "params": {
     "days_back": 90,
-    "max_reviews": 500
+    "max_reviews": 500,
+    "language": "en"
   }
 }
+```
 
 2. System Settings (`config/settings.json`)
 This file controls the "Thrifty" filters and "Risk Score" weights without code changes.
@@ -133,7 +156,7 @@ Example: 2 Crashes ($2 \times 10$) + 3 Lags ($3 \times 5$) = 35 points.
 
 1.4 RESOURCE IMPACT ANALYSIS
 Financial Impact (OpEx)
-External Costs: Apify thewolves/appstore-reviews-scraper.
+External Costs: Apify `agents/appstore-reviews` (primary); fallback to `thewolves/appstore-reviews-scraper` if needed.
 
 Cost per run: ~$0.10 - $0.20 per 1,000 reviews.
 
@@ -193,7 +216,20 @@ To ensure consistency between `pain_keywords.json` and the scoring logic, the Fo
 
 The system now generates specific JSON artifacts to decouple analysis from reporting, ensuring "Forensic" data is preserved before being rendered into Markdown.
 
-### A. Forensic Matrix (`reports/niche_matrix.json`)
+### A. Output Paths (Dynamic Niche Directories)
+
+All outputs use `{niche_name}` from `targets.json` to create subdirectories:
+
+| Artifact | Path | Description |
+| :--- | :--- | :--- |
+| Analysis | `data/{niche_name}/{app}_analysis.json` | schema_app_gap structure per app. |
+| Raw Reviews | `data/{niche_name}/{app}_reviews.json` | Cached raw reviews from Apify. |
+| Forensic Intel | `reports/{niche_name}/{app}_intelligence.json` | Per-app forensic data (timeline, N-Grams, migration). |
+| Niche Matrix | `reports/{niche_name}/niche_matrix.json` | Comparative MECE pillar scores. |
+| Individual Report | `reports/{niche_name}/report_{APP}_{YYYY-MM-DD}.md` | Per-app dossier. |
+| Niche Report | `reports/{niche_name}/report_NICHE_{NAME}_{YYYY-MM-DD}.md` | Battlefield heatmap + migration flow. |
+
+### B. Forensic Matrix (`reports/{niche_name}/niche_matrix.json`)
 * **Purpose:** Acts as the structured data source for the "Feature/Fail" Heatmap in the Niche Report.
 * **Schema:**
   ```json
@@ -212,8 +248,74 @@ The system now generates specific JSON artifacts to decouple analysis from repor
   ```
 * **Data Flow:** Generated by `ForensicAnalyzer.generate_matrix()` → Consumed by `Reporter.generate_niche_report()`.
 
-### B. Markdown Reports (The "Dossiers")
-* **Individual Report:** `reports/report_[APP]_[YYYY-MM-DD].md`
+### C. Markdown Reports (The "Dossiers")
+* **Individual Report:** `reports/{niche_name}/report_{APP}_{YYYY-MM-DD}.md`
     * Content: Executive Verdict, ASCII Timeline Chart, Top 3 N-Grams, Verified Quotes.
-* **Niche Report:** `reports/report_NICHE_[NAME]_[YYYY-MM-DD].md`
+* **Niche Report:** `reports/{niche_name}/report_NICHE_{NAME}_{YYYY-MM-DD}.md`
     * Content: The "Battlefield" Heatmap (visualizing the Matrix JSON), Migration Flow, and "White Space" Analysis.
+
+---
+
+# 5. PHASE 6: THE ARCHITECT (Generative Layer)
+
+**Status:** Active Sprint. Phase 6 inverts pain clusters into actionable user stories and roadmaps via a hybrid Python/LLM pipeline.
+
+## 5.1 Problem Space
+
+* **Core Pain Point:** "Analysis Paralysis" — knowing *that* competitors are failing is not the same as knowing *what* to build to beat them.
+* **The Gap:** Founders struggle to translate "1-star reviews" into User Stories or Feature Specs without personal bias.
+* **The Opportunity:** High-value users ("Whales") often bury feature requests in long, technical reviews that get lost in price complaints.
+
+## 5.2 Components
+
+### A. `src/fetcher_reddit.py`
+
+* **Type:** Adapter for Apify `apify/reddit-scraper`.
+* **Responsibility:** Fetch qualitative "Feature Requests" and "Alternatives" threads from Reddit to complement App Store bug reports.
+* **Key Methods:**
+    * `fetch_subreddit(subreddit: str, sort: str, limit: int)` → `List[Dict]`
+    * **Config:** Subreddit derived from `niche_name` (e.g., `r/tattoodesign` for `Tattoo_AI`).
+* **Input:** `targets.json` (for niche/subreddit mapping).
+* **Output:** Raw Reddit posts/comments for Architect consumption.
+
+### B. `src/architect.py`
+
+* **Class:** `Architect`
+* **Responsibility:** Orchestrator for the generative layer. Combines App Store forensic data + Reddit feature requests → LLM synthesis → `roadmap_mvp.md`.
+* **Key Methods:**
+    * `detect_whales(reviews_df)` → Apply 3x-5x multiplier to reviews with length > 40 words or domain vocabulary.
+    * `estimate_revenue_leakage(churn_signals, price)` → Fermi estimation: $Est = (Vol_churn × Multiplier) × Price_avg.
+    * `invert_pain_to_stories(niche_matrix, top_pain_categories)` → Build prompt context for LLM.
+    * `generate_roadmap(...)` → Calls `AIClient` for User Story synthesis; writes `roadmap_mvp.md`.
+* **Inputs:** `niche_matrix.json`, `top_pain_categories`, Whale-boosted evidence, Reddit data.
+* **Output:** `reports/{niche_name}/roadmap_mvp.md` (Prioritized Backlog).
+
+### C. `src/ai_client.py`
+
+* **Class:** `AIClient` (Gemini/OpenAI wrapper).
+* **Responsibility:** LLM client for *text synthesis only*. No math/stats — Python retains deterministic scoring.
+* **Key Methods:**
+    * `synthesize_user_stories(pain_clusters: List[str])` → Converts pain phrases to "As a [User], I want [Feature] so that [Benefit]" format.
+    * `generate_roadmap_section(context: str)` → Orchestrates prompt building and API calls.
+* **Providers:** Gemini (primary), OpenAI (fallback). Config-driven via `settings.json` or env vars.
+* **Constraint:** LLM used strictly for User Story generation; all metrics remain Python/Pandas.
+
+## 5.3 Data Flow (Phase 6)
+
+```
+Reddit (apify/reddit-scraper)  ──┐
+                                  ├──> Architect ──> AIClient (LLM) ──> roadmap_mvp.md
+niche_matrix.json + top_pain     ──┘
+```
+
+## 5.4 Output Artifact
+
+| Artifact | Path | Description |
+| :--- | :--- | :--- |
+| Roadmap MVP | `reports/{niche_name}/roadmap_mvp.md` | Prioritized backlog of User Stories inverted from pain clusters. |
+
+## 5.5 Effectiveness Constraints
+
+* **Surgically (Signal vs. Noise):** 3x-5x multiplier for Whale reviews (length > 40 words, domain vocab).
+* **Financially:** Revenue Leakage estimation differentiates "bad app" from "profitable gap."
+* **Creatively:** LLM used only for text synthesis; math/stats remain deterministic (Python).

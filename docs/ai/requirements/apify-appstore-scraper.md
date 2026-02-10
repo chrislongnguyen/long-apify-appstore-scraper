@@ -144,3 +144,45 @@ To achieve "Irrefutable Evidence" in reporting, the system must implement the fo
 * **Output Artifacts:**
     * `reports/niche_matrix.json` (The Comparative Heatmap).
     * `reports/intelligence.json` (The Intermediate Forensic Data).
+
+---
+
+## 4. PHASE 6: THE ARCHITECT (Prescriptive Analytics)
+
+### Problem Space
+- **Core Pain Point:** "Analysis Paralysis" - knowing *that* competitors are failing is not the same as knowing *what* to build to beat them.
+- **The Gap:** Founders struggle to translate "1-star reviews" into a "User Story" or "Feature Spec" without personal bias.
+- **The Opportunity:** High-value users ("Whales") often bury million-dollar feature requests in long, technical reviews that get lost in the noise of "price complaints."
+
+### The Actor
+- **Primary User:** The "Venture Architect" (Founder/Builder)
+- **System Actor:** `Architect` (Hybrid Python/LLM Agent)
+
+### Desired User Action
+**Verb:** **Synthesize, Simulate & Spec**
+
+**Acceptance Criteria:**
+1. System must distinguish "Whales" (High-Value Users) from generic complainers using heuristics (length > 40 words, domain vocabulary).
+2. System must estimate **Revenue Leakage** (Monthly $) using Fermi estimation based on churn signals.
+3. System must generate an `roadmap_mvp.md` that inverts "Pain Clusters" into "User Stories" (e.g., "Crash on Export" $\to$ "As a Pro User, I can export 4k video reliably").
+4. System must integrate **Reddit** (`apify/reddit-scraper`) to fetch qualitative "Feature Requests" to complement App Store "Bug Reports."
+
+### Effectiveness Constraints
+- **Surgically (Signal vs. Noise):** Apply a **3x-5x Multiplier** to pain points raised by "Whales" (Verified Pro/Long Context).
+- **Financially (Estimation):** Differentiate between a "bad app" and a "profitable gap" using Revenue Leakage logic.
+- **Creatively (Generative):** Use LLM (Gemini/OpenAI) strictly for *text synthesis* (User Stories), not for *math/stats* (which remains Python).
+
+### Functional Logic (The Architect Layer)
+1.  **The "Whale" Detector:**
+    * Filter: `Review Length > 40 words` OR `Vocab in {domain_terms}`.
+    * Action: Boost impact score of these reviews.
+2.  **Revenue Simulator:**
+    * Formula: $Est\_Revenue\_Leakage = (Vol_{churn\_reviews} \times Multiplier) \times Price_{avg}$.
+    * Input: `price` from `targets.json`.
+3.  **The "Anti-Roadmap" Generator:**
+    * Input: `niche_matrix.json` + `top_pain_categories`.
+    * Process: Invert Negative Clusters $\to$ Positive User Stories.
+    * Output: `roadmap_mvp.md` (Prioritized Backlog).
+4.  **Reddit Integration:**
+    * Source: `r/{niche}` (e.g., `r/tattoodesign`).
+    * Focus: "Feature Requests" and "Alternatives" threads.
