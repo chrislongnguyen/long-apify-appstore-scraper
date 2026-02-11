@@ -9,6 +9,9 @@ scikit-learn>=1.3.0  # T-008: N-Gram analysis (CountVectorizer)
 # API client
 apify-client>=1.0.0
 
+# Environment variable loading (.env file)
+python-dotenv>=1.0.0
+
 # Retry logic for reliability
 tenacity>=8.2.0
 

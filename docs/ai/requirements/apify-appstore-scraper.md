@@ -234,6 +234,103 @@ To achieve "Irrefutable Evidence" in reporting, the system must implement the fo
 
 ---
 
-## 5. PHASE 7: PRESCRIPTIVE ANALYTICS (The Architect) - *DEFERRED*
-* **Goal:** Generate "Anti-Roadmap" and User Stories using GenAI.
-* **Status:** De-prioritized until Predictive Layer (Phase 6) is validated.
+---
+
+---
+
+## 5. PHASE 7: THE VENTURE ARCHITECT (The Anthropologist Engine)
+
+### Problem Space
+- **The Gap:** Phase 6 tells us *where* the money is leaking, but not *who* the human is or *how* to build a better system for them.
+- **The Need:** A "Full-Spectrum" analysis that understands the User's **Ultimate Desired Outcome (UDO)**, their **Biological/Psychological Constraints**, and the **Principles** required to solve them better than the incumbent.
+- **The Pivot:** We must analyze **Success** (Why they stay) as deeply as **Failure** (Why they leave).
+
+### The Actor
+- **Primary User:** The "Solo Founder" (Venture Scientist).
+- **System Actor:** `VentureArchitect` (Multi-Source Intelligence Agent).
+
+### Expanded Data Sources (MECE & Scrapable)
+To draw a full ICP, we require a MECE (Mutually Exclusive, Collectively Exhaustive) view of the user's reality:
+1.  **The Pain Signal (1-2 Star Reviews):** *Existing.* Reveals Blockers (UBS) and Symptoms.
+2.  **The Success Signal (5-Star "Whale" Reviews):** *New.* Reveals Drivers (UDS), "Aha Moments," and what the incumbent actually gets right.
+    * *Filter:* Length > 30 words (ignore "Great app"). Look for "Changed my life because..."
+3.  **The Context Signal (Reddit/Forum Scraper):** *New.* Reveals "Alternatives," "Hacks," and "Real-world Context."
+    * *Target:* Subreddits related to the Niche (e.g., r/intermittentfasting).
+    * *Query:* "Best app for [Niche]", "Alternative to [Competitor]", "How to [Action]".
+
+### Desired User Action
+**Verb:** **Construct Holographic ICP & Prescribe EPS System**
+
+**Acceptance Criteria:**
+1.  **Draw the Holographic ICP:**
+    * **Who:** Demographic & Psychographic inference.
+    * **Why:** The **Ultimate Desired Outcome (UDO)** (e.g., "Not weight loss, but social confidence").
+    * **What/How:** The actual workflow (Step-by-step).
+    * **When:** The trigger context (e.g., "While grocery shopping").
+    * **Alternatives:** What do they use when the app fails? (Competitors, Spreadsheets, Pen & Paper).
+
+2.  **5-Layer Root Cause Analysis (Inference Engine):**
+    * Map both **Drivers (Success)** and **Blockers (Failure)** across the 5 Layers:
+        * *Layer 1 (App):* Interface/Features.
+        * *Layer 2 (Behavior):* Habits/Workflows.
+        * *Layer 3 (System):* The UDS - Ultimate Driving System / UBS - Ultimate Blocking System Loops.
+        * *Layer 4 (Psychology):* Biases (Fear, Ego, Status).
+        * *Layer 5 (Biology):* Dopamine, Cortisol, Energy Conservation.
+
+3.  **Derive the EPS Solution (The Prescription):**
+    * **Principles:** The strategic rules that *disable* the blockers or *enable* the drivers (e.g., "Rule 1: Never ask for data entry when user is hangry").
+    * **Environment:** The context design (e.g., "Home Screen Widget" vs. "Full App").
+    * **Tools (The Trojan Horse):**
+        * *Desirable Wrapper:* The feature that sells the solution (The Hook).
+        * *Effective Core:* The mechanic that solves the Layer 5 Root Cause.
+
+### Functional Logic (The Architecture)
+
+#### 1. The "Success & Failure" Triangulator
+* **Input:** 1-Star & 2-Star Reviews (Pain), 5-Star Reviews (Joy), Reddit Threads (Truth).
+* **Logic:**
+    * *Compare:* If 1-Star says "Too complex" but 5-Star says "Love the depth," the ICP is split (Casual vs. Pro). Identify *which* segment is the "Whale."
+    * *Contextualize:* Use Reddit to find *where* the app fits in their life. (e.g., "I use Zero only for the timer, but I use Excel for the data").
+
+#### 2. The 7-Layer Deep Dive (The Analyst)
+For the identified ICP, populate the **System Dynamics Map**:
+* **UDO (Ultimate Desired Outcome):** The "Adverb" of their life (e.g., *Effortlessly* Lean).
+* **UDS (The Driver):** The conscious force pushing them toward UDO (e.g., "Desire for longevity").
+    * **UDS.UD (Driver of UDS):** The root cause of the Driver's success (e.g., "Fear of early death/Survival Instinct").
+    * **UDS.UB (Blocker of UDS):** The root cause of the Driver's failure (e.g., "Cognitive Dissonance / Forgetfulness").
+* **UBS (The Blocker):** The conscious force stopping them (e.g., "Procrastination / Sugar Cravings").
+    * **UBS.UD (Driver of UBS):** The root cause of the Blocker's success (e.g., "Bio-Efficiency / System 1 Energy Conservation"). *Why is the problem so good at winning?*
+    * **UBS.UB (Blocker of UBS):** The root cause of the Blocker's failure (e.g., "Mindfulness / Acute Pain"). *What naturally kills the problem?*
+* **Incumbent Failure:** Why the current market leader fails to address Layers 4-7 (e.g., "Addresses Symptom, ignores Bio-Efficiency").
+
+#### 3. The EPS Generator (The Architect)
+Derive the solution **strictly** from the Deep Dive map above.
+
+**A. Principles (The Strategy)**
+* *Logic:*
+    * **Amplify UDS.UD:** How do we feed the "Survival Instinct"?
+    * **Disable UDS.UB:** How do we remove "Forgetfulness"?
+    * **Starve UBS.UD:** How do we make "Bio-Efficiency" work *for* us, not against us?
+    * **Amplify UBS.UB:** How do we trigger "Acute Pain" or "Mindfulness" automatically?
+* *Output Example:* "Principle 1: Zero-Cognitive Load (Aligns with UBS.UD Bio-Efficiency). Principle 2: Immediate Feedback Loop (Amplifies UBS.UB Acute Pain)."
+
+**B. Environment (The Context)**
+* *Logic:* Based on the Principles, where *must* the solution live to be effective?
+* *Output Example:* "Since Principle 1 is 'Zero-Load', the Environment cannot be an App. It must be a **Lock Screen Widget** or **Background Service**."
+
+**C. Tools (The Mechanism)**
+* *Logic:* What specific artifact delivers the Principle in the Environment?
+* *Output Example:* "Tool: A 'Passive Calorie Tracker' that syncs via API, with a 'Shock' notification (Red Screen) if limits are exceeded."
+
+**D. SOP (The Workflow)**
+* *Logic:* The precise Step-by-Step operation for the user.
+* *Output Example:* "User Action: None. System Action: Monitor background. Trigger: Only interrupt when UBS is detected."
+
+### Data Output Schema (`venture_blueprint.md`)
+1.  **The System Map:** A hierarchical view of UDO -> UDS/UBS -> Root Drivers/Blockers.
+2.  **The Strategic Inversion:** A table showing "Incumbent Method" vs. "New Principle" derived from Root Causes.
+3.  **The EPS Prescription:**
+    * **Environment** (Where)
+    * **Principles** (Why)
+    * **SOP & Tools** (How/What)
+4.  **The Trojan Horse:** The "Desirable Hook" (Level 1) wrapping the "Effective System" (Level 7).

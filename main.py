@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 """Main entry point for App Store Volatility Analyzer."""
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import json
 import sys
 import os

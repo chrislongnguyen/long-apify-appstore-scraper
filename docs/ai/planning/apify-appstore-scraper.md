@@ -1,23 +1,24 @@
 ---
 phase: planning
 title: Execution Plan - App Volatility Analyzer
-description: Step-by-step implementation matrix for the Python ETL pipeline (Fetcher -> Analyzer -> Reporter).
-last_updated: 2026-02-10
+description: Step-by-step implementation matrix for the Python ETL pipeline (Fetcher -> Analyzer -> Reporter -> Venture Architect).
+last_updated: 2026-02-11
 ---
 
 # QUICK STATUS SUMMARY
 
-**Current Phase:** Phase 6 (Predictive Analytics)  
-**Overall Progress:** Phases 1-5 Complete; Phase 6 Pending  
-**Next Task:** T-020 (Fermi Estimator Module) — no deps  
-**Status:** ✅ Phases 1-5 Complete → 🚧 Phase 6 at 0%
+**Current Phase:** Phase 7 — The Venture Architect  
+**Current Sprint:** Phase 7.1 (Core Intelligence) + 7.2 (Orchestration)  
+**Overall Progress:** Phases 1-6 Complete; Phase 7 In Execution  
+**Next Task:** T-025 (AI Client & Pydantic Schemas) — no deps, hard blocker for T-026  
+**Status:** ✅ Phases 1-6 Complete → 🚧 Phase 7 at 0%
 
-**Recent Achievements (2026-02-10):**
-- ✅ T-016 to T-019: Niche dirs, White Space, Migration refinement, Forensic tests
-- ✅ T-008 Forensic Intelligence: `src/intelligence.py` (ForensicAnalyzer) deployed
-- ✅ Generated "Forensic Reports" (Timelines, N-Grams, Quotes) for Voice AI & Tattoo Niches
-- ✅ Verified "Version Spike" detection (e.g., Tattoo AI Week 49)
-- ✅ Validated "Tattoo AI" Niche (7 apps identified, high volatility confirmed)
+**Recent Achievements (2026-02-11):**
+- ✅ Phase 6 Complete: T-020 to T-024 (Fermi, SlopeDelta, Named Spikes, Whale Detector, Reporter Integration)
+- ✅ Ran ViralApps niche (5 apps): Revenue Leakage, Momentum labels, Financial Impact in reports
+- ✅ Design doc updated with full Phase 7 architecture (3-stage LLM pipeline, 7-Node System Dynamics)
+- ✅ Requirements doc updated with "5-Layer Root Cause Analysis" and "EPS Generator" specs
+- 🚧 Phase 7 design approved — entering execution
 
 ---
 
@@ -71,21 +72,43 @@ last_updated: 2026-02-10
 | **T-018** | **Refine Migration** | *Accurately* (Strict Regex) | **Low (2)** | ✅ Done |
 | **T-019** | **Forensic Unit Tests** | *Robustly* (Pytest) | **Med (3)** | ✅ Done |
 
-## PHASE 6: PREDICTIVE ANALYTICS
-| ID | Task (Verb) | Target Outcome (Adverb) | Risk Factor | Deps |
+## PHASE 6: PREDICTIVE ANALYTICS ✅
+| ID | Task (Verb) | Target Outcome (Adverb) | Risk Factor | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **T-020** | **Fermi Estimator Module** | *Financially* (Implement src/analyzer.py logic for Fermi Math and Dynamic Multipliers) | **Med (5)** | None |
-| **T-021** | **Trend Acceleration (Delta)** | *Mathematically* (Calculate Slope T1 vs T2 in Analyzer) | **Med (4)** | T-006 |
-| **T-022** | **Named Spike Correlation** | *Narratively* (Update ForensicAnalyzer to link anomalies to app version metadata) | **Med (4)** | T-008 |
-| **T-023** | **Whale Detector Logic** | *Surgically* (Implement the 40-word filter and domain-vocab multiplier) | **Low (2)** | T-006 |
-| **T-024** | **Predictive Integration** | *Holistically* (Update main.py and Reporter to include the new metrics in Markdown/JSON outputs) | **Med (5)** | T-020, T-021, T-022, T-023 |
+| **T-020** | **Fermi Estimator Module** | *Financially* (Fermi Math & Dynamic Multipliers in Analyzer) | **Med (5)** | ✅ Done |
+| **T-021** | **Trend Acceleration (Delta)** | *Mathematically* (Slope T1 vs T2 in Analyzer) | **Med (4)** | ✅ Done |
+| **T-022** | **Named Spike Correlation** | *Narratively* (Link anomalies to version metadata) | **Med (4)** | ✅ Done |
+| **T-023** | **Whale Detector Logic** | *Surgically* (40-word filter + domain-vocab multiplier) | **Low (2)** | ✅ Done |
+| **T-024** | **Predictive Integration** | *Holistically* (New metrics in main.py, Reporter, JSON) | **Med (5)** | ✅ Done |
 
-## PHASE 7: THE ARCHITECT (Generative & Prescriptive) — *DEFERRED / PLANNED*
-| ID | Task (Verb) | Target Outcome (Adverb) | Risk Factor | Deps |
-| :--- | :--- | :--- | :--- | :--- |
-| **T-025** | **Integrate Reddit** | *Broadly* (Fetch Feature Requests) | **Med (5)** | None |
-| **T-026** | **Build AI Client** | *Securely* (Gemini/OpenAI Wrapper) | **Med (4)** | None |
-| **T-027** | **Gen Anti-Roadmap** | *Creatively* (LLM Prompt Engineering) | **High (8)** | T-025, T-026 |
+## PHASE 7: THE VENTURE ARCHITECT 🚧
+
+**Strategy:** Split into 3 Sub-Phases to manage complexity and risk.  
+**Current Sprint:** Phase 7.1 + 7.2 (parallel where possible)
+
+### Phase 7.1: Core Intelligence (Logic Layer) — MUST HAVE
+*Goal: Generate the System Map and EPS Prescription from internal review data.*
+
+| ID | Task (Verb) | Target Outcome (Adverb) | Risk Factor | Deps | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **T-025** | **Build AI Client & Schemas** | *Strictly* (Gemini wrapper + Pydantic models for 7-Node output) | **Med (5)** | None | 🚧 Next |
+| **T-026** | **Venture Architect Module** | *Systematically* (3-stage pipeline: ICP → SysMap → EPS) | **High (8)** | T-025 | ⏳ Blocked |
+| **T-027** | **Blueprint Reporter & Template** | *Beautifully* (Jinja2 template → venture_blueprint.md) | **Med (4)** | T-026 | ⏳ Blocked |
+
+### Phase 7.2: Orchestration & Data Plumbing — MUST HAVE
+*Goal: Connect the Scraper pipeline to the Architect.*
+
+| ID | Task (Verb) | Target Outcome (Adverb) | Risk Factor | Deps | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **T-028** | **Success Signal Integration** | *Completely* (Pass raw reviews incl. 5★ to Architect) | **Low (2)** | T-026 | ⏳ Blocked |
+| **T-029** | **Context Mocking & Graceful Degradation** | *Resiliently* (Run without Reddit; mock Context Signal for testing) | **Low (3)** | T-026 | ⏳ Blocked |
+
+### Phase 7.3: Context Layer (Reddit) — SHOULD HAVE
+*Goal: Add external validation signal from Reddit.*
+
+| ID | Task (Verb) | Target Outcome (Adverb) | Risk Factor | Deps | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **T-030** | **Reddit Scraper Integration** | *Broadly* (Fetch threads, wire into ICP construction) | **Med (5)** | T-028, T-029 | ⏳ Blocked |
 
 ---
 
@@ -200,67 +223,327 @@ last_updated: 2026-02-10
 
 ---
 
-## 3.2 Phase 7: The Architect (Deferred / Planned)
+## 3.2 Phase 7: The Venture Architect (Execution Specs)
 
-### T-025: Integrate Reddit
-* **User Story:** As a Venture Architect, I want Feature Requests and Alternatives from Reddit to complement App Store pain signals.
-* **Action:** Create `src/fetcher_reddit.py`; adapter for `apify/reddit-scraper`. Subreddit derived from `niche_name`.
+### T-025: Build AI Client & Pydantic Schemas (Phase 7.1.1)
 
-### T-026: Build AI Client
-* **User Story:** As a Developer, I need a secure LLM wrapper for text synthesis (User Stories only).
-* **Action:** Create `src/ai_client.py`; Gemini/OpenAI wrapper. Config-driven via `settings.json` or env vars.
+* **User Story:** As a Developer, I need a reliable LLM wrapper that forces structured JSON output so the Venture Architect pipeline never saves garbage.
+* **Sub-Phase:** 7.1 — Core Intelligence (MUST HAVE)
+* **Priority:** CRITICAL PATH — hard blocker for T-026.
 
-### T-027: Generate Anti-Roadmap (Invert Pain → User Stories)
+* **File:** `src/ai_client.py`
 
-* **User Story:** As a Venture Architect, I want pain clusters from App Store reviews (and Reddit) inverted into actionable User Stories so I can build a prioritized MVP roadmap without bias.
+* **Implementation Steps:**
+  1. Create `AIClient` class with `generate_structured(system_prompt, user_prompt, response_schema, temperature, max_tokens)`.
+  2. **Primary Provider:** Gemini (`google-generativeai` SDK, model `gemini-2.0-flash`).
+  3. **Fallback Provider:** OpenAI (`openai` SDK) — config-driven via `settings.json`.
+  4. **Structured Output:** Use Gemini's JSON mode (`response_mime_type="application/json"`) to force valid JSON.
+  5. **Retry Logic:** Wrap API call in `tenacity` (3 attempts, exponential backoff). If JSON parsing fails after retries, raise `ValueError` loudly.
+  6. **`_parse_json_response(raw_text)`:** Strip markdown fences (````json ... ````), parse via `json.loads`, validate against schema.
+  7. **Env Vars:** `GEMINI_API_KEY` (loaded via `dotenv`), `OPENAI_API_KEY` (optional).
 
-* **Prompt Strategy:**
+* **Pydantic Models (strict schemas):**
+  Create in `src/schemas.py` (or inline in `venture_architect.py`):
 
-1. **Input Context Assembly:**
-   * **Negative Clusters:** `top_pain_categories` from `schema_app_gap` (e.g., "critical", "scam_financial", "subscription").
-   * **N-Gram Phrases:** `extract_semantic_clusters` output (e.g., "sync failed", "premium locked").
-   * **Reddit Feature Requests:** Titles and body of "Feature Requests" / "Alternatives" threads from `apify/reddit-scraper`.
-   * **Whale Evidence:** Quotes from reviews with length > 40 words or domain vocabulary (3x-5x weighted).
+  ```python
+  from pydantic import BaseModel, Field
+  from typing import List, Optional
 
-2. **Inversion Rule (Prompt Template):**
-   * **Rule:** For each pain cluster, ask the LLM to output *exactly one* User Story in the format: *"As a [User], I want [Feature] so that [Benefit]."*
-   * **Example:** Pain Cluster `"Crash on Export"` → *"As a Pro User, I want 4K video export to complete reliably so that I can deliver client work without data loss."*
-   * **Constraint:** Do not invent features not implied by the pain cluster. Stay grounded in the source evidence.
+  class ICPSegment(BaseModel):
+      primary: str
+      secondary: str
+      whale_segment: str
 
-3. **Output Format:**
-   * **Artifact:** `reports/{niche_name}/roadmap_mvp.md`
-   * **Structure:**
-     * Executive Summary (1–2 sentences: niche focus, high-priority gaps).
-     * Prioritized User Stories (ranked by evidence volume + Whale multiplier).
-     * Revenue Leakage Estimate (if available from T-020).
-     * Reddit-Informed Additions (feature requests from Reddit not in App Store data).
+  class PainSuccessParadox(BaseModel):
+      pain_says: str
+      success_says: str
+      inference: str
 
-4. **LLM Provider:** Gemini (primary) or OpenAI (fallback). Use `ai_client.py` wrapper; no math/stats in LLM.
+  class HolographicICP(BaseModel):
+      who: dict              # {demographic, psychographic}
+      why_udo: str           # Ultimate Desired Outcome
+      what_how_workflow: List[str]
+      when_trigger: str
+      alternatives: List[str]
+      icp_segment: ICPSegment
+      pain_success_paradox: PainSuccessParadox
 
-5. **Acceptance Criteria:**
-   * At least 3 User Stories per niche from pain clusters.
-   * Each User Story must be traceable to at least one pain cluster or N-Gram phrase.
-   * Reddit data must be explicitly labeled when used as source.
+  class SystemNode(BaseModel):
+      label: str
+      evidence: List[str]
+      layer: str
+      note: Optional[str] = None
+
+  class UDO(BaseModel):
+      statement: str
+      adverb: str
+      noun: str
+
+  class SystemDynamicsMap(BaseModel):
+      udo: UDO
+      uds: SystemNode
+      uds_ud: SystemNode
+      uds_ub: SystemNode
+      ubs: SystemNode
+      ubs_ud: SystemNode
+      ubs_ub: SystemNode
+      incumbent_failure: str
+      depth_layers: dict     # {layer_1_app, layer_2_behavior, ..., layer_5_biology}
+
+  class Principle(BaseModel):
+      id: str
+      name: str
+      strategy: str          # e.g., "Amplify UDS.UD"
+      node_ref: str          # e.g., "uds_ud"
+      rationale: str
+
+  class EPSPrescription(BaseModel):
+      principles: List[Principle]
+      environment: dict      # {form_factor, rationale, anti_pattern}
+      tools: dict            # {desirable_wrapper, effective_core}
+      sop: List[dict]        # [{step, actor, action}]
+      trojan_horse: dict     # {level_1_desirable, level_5_effective}
+      strategic_inversion_table: List[dict]
+  ```
+
+* **Acceptance Criteria:**
+  * `AIClient.generate_structured()` returns valid Python dict.
+  * Invalid JSON from LLM raises `ValueError` after 2 retries (fail loud).
+  * Pydantic models validate all three stage outputs; `ValidationError` on schema mismatch.
+  * Unit test: mock LLM response, assert Pydantic parse succeeds.
+
+* **New Dependencies:** `google-generativeai>=0.5.0`, `pydantic>=2.0.0` (add to `requirements.txt`).
+
+---
+
+### T-026: Venture Architect Module — Core (Phase 7.1.2)
+
+* **User Story:** As a Venture Architect, I want a 3-stage inference engine that maps User Psychology → System Dynamics → Strategic Principles so I can build a product that solves root causes, not symptoms.
+* **Sub-Phase:** 7.1 — Core Intelligence (MUST HAVE)
+* **Priority:** HIGH — depends on T-025 (AI Client).
+
+* **File:** `src/venture_architect.py`
+
+* **Class:** `VentureArchitect`
+
+* **Implementation Steps:**
+
+  **Stage 1 — `construct_holographic_icp(pain_reviews, success_reviews, reddit_data, analysis, app_name)`:**
+  1. Extract top 10 Pain quotes from `pain_reviews` (prioritize Whales: > 40 words).
+  2. Extract top 10 Success quotes from `success_reviews` (5★, > 30 words).
+  3. Summarize Reddit themes (if available; empty list if not — see T-029).
+  4. Assemble user prompt: Pain quotes + Success quotes + Reddit summary + `analysis.signals` summary.
+  5. Call `ai_client.generate_structured(ICP_SYSTEM_PROMPT, user_prompt)`.
+  6. Validate response against `HolographicICP` Pydantic model.
+  7. Return validated ICP dict.
+
+  **Stage 2 — `map_system_dynamics(icp, pain_reviews, success_reviews, analysis, app_name)`:**
+  1. Curate top 15 evidence quotes (mixed Pain + Success, Whale priority).
+  2. Assemble user prompt: Full ICP JSON + curated evidence + `analysis.metrics`.
+  3. Call `ai_client.generate_structured(SYSTEM_DYNAMICS_PROMPT, user_prompt)`.
+  4. Validate response against `SystemDynamicsMap` Pydantic model.
+  5. **Depth Validation:** Assert `uds_ud.layer` and `ubs_ud.layer` contain "Layer 5" or "Biology". If not, log warning (LLM stopped too shallow).
+  6. Return validated System Map dict.
+
+  **Stage 3 — `generate_eps_prescription(system_map, icp, app_name)`:**
+  1. Assemble user prompt: Full ICP JSON + Full System Map JSON.
+  2. Call `ai_client.generate_structured(EPS_SYSTEM_PROMPT, user_prompt)`.
+  3. Validate response against `EPSPrescription` Pydantic model.
+  4. **Inversion Validation:** Assert `len(principles) >= 4` (one per UDS.UD, UDS.UB, UBS.UD, UBS.UB). Log warning if fewer.
+  5. Return validated EPS dict.
+
+  **Orchestrator — `generate_blueprint(app_name, raw_reviews, filtered_reviews, analysis, reddit_data, output_dir)`:**
+  1. `_extract_pain_reviews(filtered_reviews)` → rating ≤ 2.
+  2. `_extract_success_reviews(raw_reviews)` → rating = 5, word count > 30.
+  3. Run Stage 1 → `icp`.
+  4. Run Stage 2 → `system_map`.
+  5. Run Stage 3 → `eps`.
+  6. Save `{app}_system_map.json` (all three stage outputs).
+  7. Render `venture_blueprint_{app}.md` (via Reporter — see T-027).
+  8. Return `(blueprint_path, system_map_json_path)`.
+
+* **System Prompts:** Defined in design doc §4.6 (ICP, SysMap, EPS). Store as constants in `venture_architect.py`.
+
+* **Risk Mitigation — Token Budget:**
+  * Evidence is capped at ~3000 tokens per stage via `_curate_evidence(reviews, max_quotes=10)`.
+  * Implement a "Cluster Summarizer" step: if > 200 reviews, group by pain category first, then select top quote per category. Prevents feeding 1000 raw reviews to the LLM.
+
+* **Acceptance Criteria:**
+  * All 3 stages produce Pydantic-valid output for a real niche (e.g., Fasting_Trackers).
+  * System Map reaches Layer 5 (Biology) for at least `uds_ud` and `ubs_ud`.
+  * EPS Principles map 1:1 to system nodes (back-reference check).
+  * End-to-end: `generate_blueprint()` produces both `.json` and `.md` artifacts.
+  * Smoke test: Run on 1 app with `--venture-architect --smoke-test`.
+
+---
+
+### T-027: Blueprint Reporter & Jinja2 Template (Phase 7.1.3)
+
+* **User Story:** As a Founder, I want the Venture Blueprint rendered as a beautiful, readable Markdown Strategy Doc so I can share it with co-founders and investors.
+* **Sub-Phase:** 7.1 — Core Intelligence (MUST HAVE)
+* **Priority:** MEDIUM — depends on T-026 (needs JSON structure to render).
+
+* **Implementation Steps:**
+  1. **Create `templates/venture_blueprint.j2`:** Jinja2 template that renders the 4-section Markdown:
+     * Section 1: The System Map (UDO, Driving Forces table, Blocking Forces table, Incumbent Failure).
+     * Section 2: The Strategic Inversion (table: Incumbent Method → Root Cause → New Principle).
+     * Section 3: The EPS Prescription (Environment, Principles list, Tools, SOP steps).
+     * Section 4: The Trojan Horse (Level 1 vs Level 5).
+  2. **Update `src/reporter.py`:** Add `render_venture_blueprint(app_name, icp, system_map, eps, output_dir)` method.
+     * Uses `jinja2.Environment` to load and render template.
+     * Output: `reports/{niche_name}/venture_blueprint_{app_safe_name}.md`.
+  3. **Alternative (if Jinja2 is overkill):** Use f-string builder in Reporter. Decision: Jinja2 preferred for maintainability.
+
+* **New Dependency:** `jinja2>=3.1.0` (add to `requirements.txt`).
+
+* **Acceptance Criteria:**
+  * Template renders valid Markdown with tables, bold headers, block quotes.
+  * No raw JSON visible in output — everything is human-readable.
+  * Verified: Open in VS Code preview → clean formatting.
+
+---
+
+### T-028: Success Signal Integration (Phase 7.2.1)
+
+* **User Story:** As a Developer, I need the pipeline to pass all raw reviews (including 5★) to the Venture Architect so it can extract the Success Signal.
+* **Sub-Phase:** 7.2 — Orchestration (MUST HAVE)
+* **Priority:** MEDIUM — depends on T-026.
+
+* **Implementation Steps:**
+  1. **Verify `main.py` data flow:** Confirm `reviews` (pre-filter) is available in the processing loop. (Already true — `reviews = fetcher.fetch_reviews(...)` exists before `filtered_reviews = fetcher.filter_reviews(reviews)`.)
+  2. **Add CLI flag `--venture-architect`:** `parser.add_argument("--venture-architect", action="store_true")`.
+  3. **Add Phase 7 block in `main.py`:** After existing Phase 4-6 processing, invoke `VentureArchitect.generate_blueprint(raw_reviews=reviews, ...)`.
+  4. **Component initialization:** Import `AIClient`, `RedditFetcher`, `VentureArchitect` conditionally (only when `--venture-architect` is set).
+  5. **Reddit cache:** Fetch Reddit data once per niche (not per app). Store in `reddit_cache` variable.
+
+* **Key Design Decision:** `raw_reviews` (the unfiltered list) is passed to `VentureArchitect`. The Architect internally calls `_extract_success_reviews()` to filter 5★ whales. **No changes to `Fetcher` class required.**
+
+* **Acceptance Criteria:**
+  * `python main.py --venture-architect --smoke-test` runs full pipeline (Phases 1-7) for first app.
+  * Without `--venture-architect` flag, pipeline behaves identically to current (zero LLM cost).
+  * Success reviews are logged: "✓ Extracted X success signal reviews (5★, >30 words)".
+
+---
+
+### T-029: Context Mocking & Graceful Degradation (Phase 7.2.2)
+
+* **User Story:** As a Developer, I need the Venture Architect to work with App Store data alone when Reddit data is unavailable, so I can test the core logic without the Reddit scraper.
+* **Sub-Phase:** 7.2 — Orchestration (MUST HAVE)
+* **Priority:** MEDIUM — risk mitigation for T-030.
+
+* **Implementation Steps:**
+  1. **Graceful empty:** `VentureArchitect.generate_blueprint()` accepts `reddit_data=[]` (empty list).
+  2. **Prompt adaptation:** When `reddit_data` is empty, the ICP system prompt omits the "Context Signal" section and adds: "Note: No Reddit data available. Infer context from review text only."
+  3. **Mock fixture (for testing):** Create `tests/fixtures/mock_reddit_fasting.json` with 5-10 sample Reddit posts to test Context Signal integration without Apify calls.
+  4. **Logging:** When Reddit data is missing, log: "⚠ No Reddit data — running Architect on App Store signals only."
+
+* **Acceptance Criteria:**
+  * Full pipeline runs successfully with `reddit_data=[]`.
+  * Output quality is acceptable (ICP + SysMap + EPS generated) even without Reddit.
+  * When mock Reddit data is provided, it appears in ICP output under `alternatives` and `when_trigger`.
+
+---
+
+### T-030: Reddit Scraper Integration (Phase 7.3.1)
+
+* **User Story:** As a Venture Architect, I want real Reddit threads about the niche to provide the "Context Signal" — how users talk about the problem outside the App Store.
+* **Sub-Phase:** 7.3 — Context Layer (SHOULD HAVE)
+* **Priority:** NICE-TO-HAVE — enhances quality but not blocking.
+
+* **File:** `src/fetcher_reddit.py`
+
+* **Implementation Steps:**
+  1. **Create `RedditFetcher` class:** Wrapper for Apify `apify/reddit-scraper` actor.
+     * `fetch_threads(subreddits, search_queries, max_posts=50, sort="relevance")` → `List[Dict]`.
+     * `extract_context_themes(threads)` → `Dict` with `alternatives_mentioned`, `user_workflows`, `pain_contexts`.
+  2. **Update `config/targets.json` schema:** Add optional `venture_architect` block with `subreddits` and `search_queries` arrays.
+  3. **Wire into `main.py`:** Before the per-app loop, fetch Reddit data once and cache. Pass to `VentureArchitect.generate_blueprint()`.
+  4. **Update `config_validator.py`:** Validate `venture_architect` block (optional, skip if missing).
+
+* **Acceptance Criteria:**
+  * Reddit threads fetched for configured subreddits.
+  * `extract_context_themes()` identifies at least 2 competitor alternatives from Reddit text.
+  * Cost: < $0.05 per Reddit fetch (monitor Apify usage).
+
+---
+
+### Risk Register (Phase 7)
+
+| # | Risk | Impact | Likelihood | Mitigation | Owner |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| R1 | **LLM Hallucination** — System Map contains invented evidence | High | Medium | Strict Pydantic schemas (T-025). Fail loud on validation error. Every node must cite an evidence quote. | T-025, T-026 |
+| R2 | **Token Cost Overrun** — 1000 reviews → huge prompt | Medium | Medium | "Cluster Summarizer" in T-026: group by category, select top quote per category. Cap at ~3000 tokens/stage. | T-026 |
+| R3 | **Shallow Analysis** — LLM stops at Layer 3 (System) instead of Layer 5 (Biology) | Medium | High | Depth Validation in T-026: assert `uds_ud.layer` contains "Layer 5". Re-prompt once if shallow. | T-026 |
+| R4 | **Reddit Scraper Delay** — Actor rate-limited or schema changes | Low | Medium | T-029 graceful degradation: Architect works without Reddit. Reddit is SHOULD HAVE, not blocker. | T-029, T-030 |
+| R5 | **API Key Exposure** — Gemini key committed to git | High | Low | `.env` in `.gitignore` (already). `ai_client.py` loads via `os.getenv()` / `dotenv`. | T-025 |
+
+### Dependency Graph
+
+```
+T-025 (AI Client + Schemas) ←── HARD BLOCKER
+  │
+  ├── T-026 (Venture Architect Core)
+  │     │
+  │     ├── T-027 (Blueprint Reporter)
+  │     ├── T-028 (Success Signal Integration / main.py wiring)
+  │     └── T-029 (Context Mocking / Graceful Degradation)
+  │           │
+  │           └── T-030 (Reddit Scraper) ←── SHOULD HAVE, not blocking
+  │
+  └── (No other deps — T-025 can start immediately)
+```
 
 ---
 
 # 4. RESOURCE & BUDGET TRACKER
 | Metric | Current Usage | Hard Limit | Status |
 | :--- | :--- | :--- | :--- |
-| **Financial Cost (Apify)** | ~$0.05 | $5.00 | 🟢 Safe |
-| **LLM API Costs** | TBD (Phase 7) | $5.00 | ⏳ Placeholder |
-| **API Calls** | ~8 successful runs | N/A | 🟢 Safe |
-| **Reviews Fetched** | ~300+ reviews | N/A | 🟢 Safe |
+| **Financial Cost (Apify)** | ~$0.30 | $5.00 | 🟢 Safe |
+| **LLM API Costs (Phase 7)** | $0.00 (not started) | $5.00 | ⏳ Est. ~$0.003/app (Gemini Flash) |
+| **API Calls** | ~15+ successful runs | N/A | 🟢 Safe |
+| **Reviews Fetched** | ~2500+ reviews | N/A | 🟢 Safe |
+| **Niches Analyzed** | 4 (Voice AI, Tattoo AI, Fasting Trackers, ViralApps) | N/A | 🟢 |
+
+**Phase 7 Cost Estimate:**
+* Gemini 2.0 Flash: ~$0.001/call × 3 stages/app × 5 apps/niche = **~$0.015/niche**.
+* Reddit Scraper (T-030): ~$0.05/niche.
+* **Total per niche:** ~$0.07. Well within $5.00 limit.
 
 ---
 
-# 5. NEXT ACTIONS (Phase 6 Execution)
+# 5. NEXT ACTIONS (Phase 7 Sprint)
 
-1.  **Execute T-020 (Fermi Estimator Module):** Implement Fermi formula and dynamic multipliers in `src/analyzer.py`.
-2.  **Execute T-021 (Trend Acceleration):** Add SlopeDeltaCalculator (Slope T1 vs T2) in Analyzer.
-3.  **Execute T-022 (Named Spike Correlation):** Update ForensicAnalyzer with `name_spike()` to link anomalies to version metadata.
-4.  **Execute T-023 (Whale Detector Logic):** Implement 40-word filter and domain-vocab multiplier.
-5.  **Execute T-024 (Predictive Integration):** Wire new metrics into main.py and Reporter; update Markdown/JSON outputs.
+### Immediate (Phase 7.1 + 7.2 — This Sprint)
+
+1.  **T-025 (AI Client & Schemas):** Create `src/ai_client.py` + Pydantic models. This is the **hard blocker** — build first.
+    * Add `google-generativeai`, `pydantic` to `requirements.txt`.
+    * Unit test with mock LLM response.
+
+2.  **T-026 (Venture Architect Core):** Create `src/venture_architect.py` with 3-stage pipeline.
+    * Implement `construct_holographic_icp()`, `map_system_dynamics()`, `generate_eps_prescription()`.
+    * Implement `_curate_evidence()` cluster summarizer (token budget control).
+    * Smoke test on Fasting_Trackers niche.
+
+3.  **T-027 (Blueprint Reporter):** Create Jinja2 template + `Reporter.render_venture_blueprint()`.
+    * Add `jinja2` to `requirements.txt`.
+    * Verify Markdown renders cleanly in VS Code preview.
+
+4.  **T-028 (Success Signal Integration):** Add `--venture-architect` CLI flag to `main.py`. Wire orchestration.
+
+5.  **T-029 (Context Mocking):** Ensure pipeline works with `reddit_data=[]`. Create mock fixture.
+
+### Deferred (Phase 7.3 — Next Sprint)
+
+6.  **T-030 (Reddit Scraper):** Create `src/fetcher_reddit.py`. Wire Reddit → ICP. Update `targets.json` schema.
+
+### Suggested Execution Order
+
+```
+Day 1:  T-025 (AI Client)  →  T-026 Stage 1 (ICP)
+Day 2:  T-026 Stage 2+3 (SysMap + EPS)  →  T-029 (Graceful Degradation)
+Day 3:  T-027 (Template)  →  T-028 (main.py wiring)  →  Smoke Test
+Day 4:  T-030 (Reddit — if time permits)
+```
 
 ---
 
@@ -270,6 +553,21 @@ last_updated: 2026-02-10
 - **Phase 1-3:** 100% ✅
 - **Phase 4:** 100% ✅ (T-008 Complete)
 - **Phase 5:** 100% ✅ (T-016 to T-019 Complete)
-- **Phase 6 (Predictive Analytics):** 0% 🚧 (T-020 to T-024 pending)
-- **Phase 7 (The Architect):** Deferred / Planned (T-025 to T-027)
+- **Phase 6 (Predictive Analytics):** 100% ✅ (T-020 to T-024 Complete)
+- **Phase 7.1 (Core Intelligence):** 0% 🚧 (T-025, T-026, T-027 pending)
+- **Phase 7.2 (Orchestration):** 0% 🚧 (T-028, T-029 pending)
+- **Phase 7.3 (Context Layer):** 0% ⏳ (T-030 — SHOULD HAVE, deferred to next sprint)
+
+## Module Inventory
+| Module | Phase | Status |
+| :--- | :--- | :--- |
+| `src/fetcher.py` | Phase 2 | ✅ Production |
+| `src/analyzer.py` | Phase 3 + 6 | ✅ Production (incl. Fermi, SlopeDelta, Whale) |
+| `src/intelligence.py` | Phase 4 | ✅ Production (ForensicAnalyzer) |
+| `src/reporter.py` | Phase 5 | ✅ Production (reports + leaderboard) |
+| `src/config_validator.py` | Phase 1 | ✅ Production |
+| `src/ai_client.py` | Phase 7.1 | 🚧 Not started |
+| `src/venture_architect.py` | Phase 7.1 | 🚧 Not started |
+| `src/fetcher_reddit.py` | Phase 7.3 | ⏳ Deferred |
+| `templates/venture_blueprint.j2` | Phase 7.1 | 🚧 Not started |
 

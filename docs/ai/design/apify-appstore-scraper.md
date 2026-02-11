@@ -70,13 +70,24 @@ graph TD
         Fermi -->|Review_Vol, Price, Multiplier| LeakageUSD["Monthly_Leakage_USD"]
     end
 
-    subgraph "Phase 7: Prescriptive (The Architect) - DEFERRED"
-        Main -->|invokes after Phase 6| Architect[Architect Class]
-        AppData["niche_matrix.json + top_pain_categories"] --> Architect
-        RedditFetcher[fetcher_reddit.py] -->|apify/reddit-scraper| RedditData[Feature Requests]
-        RedditData --> Architect
-        Architect -->|orchestrates| AIClient[ai_client.py LLM]
-        AIClient -->|Gemini/OpenAI| Roadmap["reports/{niche}/roadmap_mvp.md"]
+    subgraph "Phase 7: Venture Architect (The Anthropologist)"
+        Main -->|raw reviews + analysis| VA[VentureArchitect]
+        VA -->|extracts| PainSig["Pain Signal (1-2★)"]
+        VA -->|extracts| SuccessSig["Success Signal (5★ Whales)"]
+        RedditFetcher[fetcher_reddit.py] -->|apify/reddit-scraper| ContextSig["Context Signal (Reddit)"]
+        ContextSig --> VA
+
+        VA -->|Stage 1| ICP["Holographic ICP (JSON)"]
+        VA -->|Stage 2| SysMap["7-Node System Dynamics Map (JSON)"]
+        VA -->|Stage 3| EPS["EPS Prescription (JSON)"]
+
+        ICP --> SysMap --> EPS
+
+        VA -->|orchestrates| AIClient[ai_client.py LLM]
+        AIClient -->|Gemini structured output| VA
+
+        VA -->|renders| Blueprint["reports/{niche}/venture_blueprint_{app}.md"]
+        VA -->|saves| SysMapJSON["reports/{niche}/{app}_system_map.json"]
     end
 ```
 
@@ -255,6 +266,8 @@ All outputs use `{niche_name}` from `targets.json` to create subdirectories:
 | Individual Report | `reports/{niche_name}/report_{APP}_{YYYY-MM-DD}.md` | Per-app dossier. |
 | Niche Report | `reports/{niche_name}/report_NICHE_{NAME}_{YYYY-MM-DD}.md` | Battlefield heatmap + migration flow. |
 | Market Leaderboard | `data/{niche_name}/market_leaderboard.md` | Ranked by Revenue Leakage; Momentum, Risk Score columns. |
+| Venture Blueprint | `reports/{niche_name}/venture_blueprint_{app}.md` | Phase 7: Holographic ICP + System Dynamics Map + EPS Prescription. |
+| System Map JSON | `reports/{niche_name}/{app}_system_map.json` | Phase 7: Machine-readable ICP, 7-Node map, and EPS data. |
 
 ### B. Forensic Matrix (`reports/{niche_name}/niche_matrix.json`)
 * **Purpose:** Acts as the structured data source for the "Feature/Fail" Heatmap in the Niche Report.
@@ -345,78 +358,845 @@ Used in Leaderboard and reports. Derived from `volatility_slope` and `slope_delt
 
 ---
 
-# 4. PHASE 7: PRESCRIPTIVE ANALYTICS (The Architect) — *DEFERRED*
+# 4. PHASE 7: THE VENTURE ARCHITECT (The Anthropologist Engine)
 
-**Status:** Deferred until Phase 6 (Predictive) is validated. Phase 7 inverts pain clusters into actionable user stories and roadmaps via a hybrid Python/LLM pipeline.
+**Status:** Ready for Execution. Phase 7 constructs a "Holographic ICP" and prescribes an EPS Solution System by triangulating Pain, Success, and Context signals through a 3-stage LLM pipeline.
 
 ## 4.1 Problem Space
 
-* **Core Pain Point:** "Analysis Paralysis" — knowing *that* competitors are failing is not the same as knowing *what* to build to beat them.
-* **The Gap:** Founders struggle to translate "1-star reviews" into User Stories or Feature Specs without personal bias.
-* **The Opportunity:** High-value users ("Whales") often bury feature requests in long, technical reviews that get lost in price complaints.
+* **Core Pain Point:** Phase 6 tells us *where* the money is leaking, but not *who* the human is or *how* to build a better system for them.
+* **The Gap:** Founders see "bad reviews" but cannot infer the **Ultimate Desired Outcome (UDO)**, the biological/psychological forces driving/blocking it, or the strategic principles needed to solve it.
+* **The Pivot:** We must analyze **Success** (Why they stay — 5★ whales) as deeply as **Failure** (Why they leave — 1-2★), then contextualize with **Reddit** (What they actually do).
 
-## 4.2 Components
+## 4.2 Three Data Signals (MECE Inputs)
 
-### A. `src/fetcher_reddit.py`
+The Venture Architect requires three *mutually exclusive, collectively exhaustive* data inputs:
 
-* **Type:** Adapter for Apify `apify/reddit-scraper`.
-* **Responsibility:** Fetch qualitative "Feature Requests" and "Alternatives" threads from Reddit to complement App Store bug reports.
-* **Key Methods:**
-    * `fetch_subreddit(subreddit: str, sort: str, limit: int)` → `List[Dict]`
-    * **Config:** Subreddit derived from `niche_name` (e.g., `r/tattoodesign` for `Tattoo_AI`).
-* **Input:** `targets.json` (for niche/subreddit mapping).
-* **Output:** Raw Reddit posts/comments for Architect consumption.
+| Signal | Source | Filter | Reveals |
+| :--- | :--- | :--- | :--- |
+| **Pain Signal** | 1-2★ App Store reviews | Already available from `filtered_reviews` | Blockers (UBS), symptoms, churn triggers |
+| **Success Signal** | 5★ App Store reviews | Length > 30 words (ignore "Great app") | Drivers (UDS), "Aha Moments", what works |
+| **Context Signal** | Reddit threads | Subreddits related to niche | Alternatives, real-world hacks, where app fits in user's life |
 
-### B. `src/architect.py`
+### 4.2.1 Success Signal Extraction (Critical Design Point)
 
-* **Class:** `Architect`
-* **Responsibility:** Orchestrator for the generative layer. Combines App Store forensic data + Reddit feature requests → LLM synthesis → `roadmap_mvp.md`.
-* **Key Methods:**
-    * `detect_whales(reviews_df)` → Apply 3x-5x multiplier to reviews with length > 40 words or domain vocabulary.
-    * `estimate_revenue_leakage(churn_signals, price)` → Fermi estimation: $Est = (Vol_churn × Multiplier) × Price_avg.
-    * `invert_pain_to_stories(niche_matrix, top_pain_categories)` → Build prompt context for LLM.
-    * `generate_roadmap(...)` → Calls `AIClient` for User Story synthesis; writes `roadmap_mvp.md`.
-* **Inputs:** `niche_matrix.json`, `top_pain_categories`, Whale-boosted evidence, Reddit data.
-* **Output:** `reports/{niche_name}/roadmap_mvp.md` (Prioritized Backlog).
+**Problem:** The current pipeline drops 5★ reviews via `Fetcher.filter_reviews()` (`drop_generic_5_star: true`). Phase 7 needs them.
 
-### C. `src/ai_client.py`
+**Solution:** `main.py` already has the raw `reviews` list (pre-filter). Pass this to `VentureArchitect`, which internally extracts the Success Signal:
 
-* **Class:** `AIClient` (Gemini/OpenAI wrapper).
-* **Responsibility:** LLM client for *text synthesis only*. No math/stats — Python retains deterministic scoring.
-* **Key Methods:**
-    * `synthesize_user_stories(pain_clusters: List[str])` → Converts pain phrases to "As a [User], I want [Feature] so that [Benefit]" format.
-    * `generate_roadmap_section(context: str)` → Orchestrates prompt building and API calls.
-* **Providers:** Gemini (primary), OpenAI (fallback). Config-driven via `settings.json` or env vars.
-* **Constraint:** LLM used strictly for User Story generation; all metrics remain Python/Pandas.
-
-## 4.3 Data Flow (Phase 7)
-
-```
-Reddit (apify/reddit-scraper)  ──┐
-                                  ├──> Architect ──> AIClient (LLM) ──> roadmap_mvp.md
-niche_matrix.json + top_pain     ──┘
+```python
+# In VentureArchitect._extract_success_reviews(raw_reviews)
+success_reviews = [
+    r for r in raw_reviews
+    if r.get("rating", 0) >= 5
+    and len(r.get("text", "").split()) > 30
+]
 ```
 
-## 4.4 Output Artifact
+**Verification:** This filter rejects generic 5★ ("Great app", "Love it") but retains narrative reviews that explain *why* the app changed their life. These are the "Whale" success reviews.
 
-| Artifact | Path | Description |
+## 4.3 Components
+
+### A. `src/venture_architect.py` — VentureArchitect (The Orchestrator)
+
+* **Class:** `VentureArchitect`
+* **Responsibility:** 3-stage LLM pipeline that ingests triangulated signals and outputs a Venture Blueprint.
+* **Dependencies:** `AIClient`, `RedditFetcher`, existing `schema_app_gap` + `intelligence.json`.
+
+#### Constructor
+
+```python
+class VentureArchitect:
+    def __init__(
+        self,
+        ai_client: AIClient,
+        pain_keywords_path: Path,
+        settings: Optional[Dict] = None,
+    ):
+        """
+        Args:
+            ai_client: Initialized AIClient (Gemini/OpenAI wrapper).
+            pain_keywords_path: Path to pain_keywords.json (for pillar mapping context).
+            settings: Optional venture_architect settings from settings.json.
+        """
+```
+
+#### Method 1: `construct_holographic_icp`
+
+```python
+def construct_holographic_icp(
+    self,
+    pain_reviews: List[Dict],
+    success_reviews: List[Dict],
+    reddit_data: List[Dict],
+    analysis: Dict,
+    app_name: str,
+) -> Dict[str, Any]:
+    """
+    Stage 1: Triangulate three signals into a Holographic ICP.
+
+    Steps:
+        1. Extract top Pain themes (from analysis.signals.top_pain_categories).
+        2. Extract top Success themes (cluster 5★ whale text by topic).
+        3. Extract Context themes (Reddit alternatives, workflows, triggers).
+        4. Build LLM prompt with all three signal summaries.
+        5. Call AIClient with ICP_SYSTEM_PROMPT (see §4.6.1).
+        6. Parse structured JSON response.
+
+    Returns:
+        Dict with keys: who, why_udo, what_how_workflow, when_trigger,
+                        alternatives, icp_segment (casual vs pro),
+                        pain_success_paradox (e.g., "Too complex" vs "Love the depth").
+    """
+```
+
+**ICP Output Schema:**
+```json
+{
+  "who": {
+    "demographic": "25-40, health-conscious professionals",
+    "psychographic": "Optimization-driven, data-oriented, time-poor"
+  },
+  "why_udo": "Not weight loss, but effortless metabolic control that frees cognitive load",
+  "what_how_workflow": [
+    "Step 1: Open app when starting fast",
+    "Step 2: Check timer during meals",
+    "Step 3: Log weight weekly"
+  ],
+  "when_trigger": "After dinner, planning next-day meals; while grocery shopping",
+  "alternatives": ["Spreadsheets", "Pen & paper", "Competitor X timer-only"],
+  "icp_segment": {
+    "primary": "Casual Optimizer (70%)",
+    "secondary": "Biohacker Pro (30%)",
+    "whale_segment": "Biohacker Pro"
+  },
+  "pain_success_paradox": {
+    "pain_says": "Too complex, too many features",
+    "success_says": "Love the depth and data export",
+    "inference": "ICP is split — Casual users churn, Pro users are whales"
+  }
+}
+```
+
+#### Method 2: `map_system_dynamics`
+
+```python
+def map_system_dynamics(
+    self,
+    icp: Dict[str, Any],
+    pain_reviews: List[Dict],
+    success_reviews: List[Dict],
+    analysis: Dict,
+    app_name: str,
+) -> Dict[str, Any]:
+    """
+    Stage 2: Populate the 7-Node System Dynamics Map.
+
+    The 7 nodes form two opposing force trees rooted at the UDO:
+
+        UDO (Ultimate Desired Outcome)
+        ├── UDS (Ultimate Driving System)  — conscious force toward UDO
+        │   ├── UDS.UD (Driver of UDS)     — root cause of Driver's success
+        │   └── UDS.UB (Blocker of UDS)    — root cause of Driver's failure
+        └── UBS (Ultimate Blocking System) — conscious force away from UDO
+            ├── UBS.UD (Driver of UBS)     — root cause of Blocker's success
+            └── UBS.UB (Blocker of UBS)    — root cause of Blocker's failure
+
+    Steps:
+        1. Feed ICP + curated Pain/Success evidence quotes to LLM.
+        2. LLM infers each node across 5 depth layers:
+           Layer 1 (App): Interface/Features
+           Layer 2 (Behavior): Habits/Workflows
+           Layer 3 (System): Feedback loops
+           Layer 4 (Psychology): Biases (Fear, Ego, Status)
+           Layer 5 (Biology): Dopamine, Cortisol, Energy Conservation
+        3. Parse structured JSON.
+
+    Returns:
+        Dict with keys: udo, uds, uds_ud, uds_ub, ubs, ubs_ud, ubs_ub,
+                        incumbent_failure, depth_layers.
+    """
+```
+
+**System Dynamics Output Schema:**
+```json
+{
+  "udo": {
+    "statement": "Effortlessly Lean",
+    "adverb": "Effortlessly",
+    "noun": "Metabolic Control"
+  },
+  "uds": {
+    "label": "Desire for Longevity",
+    "evidence": ["5★: 'Changed my health trajectory'", "Reddit: 'IF saved my life'"],
+    "layer": "Psychology (Layer 4)"
+  },
+  "uds_ud": {
+    "label": "Survival Instinct / Fear of Early Death",
+    "evidence": ["5★: 'My doctor said I had 5 years'"],
+    "layer": "Biology (Layer 5)"
+  },
+  "uds_ub": {
+    "label": "Cognitive Overload / Decision Fatigue",
+    "evidence": ["1★: 'Too many options', Reddit: 'I just want a timer'"],
+    "layer": "Psychology (Layer 4)"
+  },
+  "ubs": {
+    "label": "Procrastination / Instant Gratification",
+    "evidence": ["1★: 'I keep breaking my fast for snacks'"],
+    "layer": "Behavior (Layer 2)"
+  },
+  "ubs_ud": {
+    "label": "Bio-Efficiency / System 1 Energy Conservation",
+    "evidence": ["Reddit: 'Your brain is wired to eat when food is near'"],
+    "layer": "Biology (Layer 5)",
+    "note": "Why the problem is so good at winning"
+  },
+  "ubs_ub": {
+    "label": "Acute Pain / Mindfulness Trigger",
+    "evidence": ["5★: 'The streak counter guilt-tripped me into sticking with it'"],
+    "layer": "Psychology (Layer 4)",
+    "note": "What naturally kills the problem"
+  },
+  "incumbent_failure": "Addresses Layer 1 (App UI) but ignores Layer 5 (Bio-Efficiency). Timer is a tool, not a system.",
+  "depth_layers": {
+    "layer_1_app": "Timer interface, food log, weight chart",
+    "layer_2_behavior": "Manual logging, streak tracking",
+    "layer_3_system": "No closed-loop feedback; user must self-motivate",
+    "layer_4_psychology": "Streak counter leverages Loss Aversion, but ignores Decision Fatigue",
+    "layer_5_biology": "No integration with circadian rhythm, cortisol cycles, or hunger signals"
+  }
+}
+```
+
+#### Method 3: `generate_eps_prescription`
+
+```python
+def generate_eps_prescription(
+    self,
+    system_map: Dict[str, Any],
+    icp: Dict[str, Any],
+    app_name: str,
+) -> Dict[str, Any]:
+    """
+    Stage 3: Derive Principles, Environment, Tools & SOP strictly from the System Map.
+
+    The EPS logic is deterministic inversion of the 7-node map:
+        - Principles:   Amplify UDS.UD, Disable UDS.UB, Starve UBS.UD, Amplify UBS.UB
+        - Environment:  Derived from Principles (where must the solution live?)
+        - Tools:        Desirable Wrapper (Hook) + Effective Core (Layer 5 mechanic)
+        - SOP:          Step-by-step user workflow
+
+    Steps:
+        1. Feed full system_map JSON + ICP to LLM.
+        2. LLM derives each EPS component with explicit back-references to nodes.
+        3. Parse structured JSON.
+
+    Returns:
+        Dict with keys: principles, environment, tools, sop, trojan_horse,
+                        strategic_inversion_table.
+    """
+```
+
+**EPS Output Schema:**
+```json
+{
+  "principles": [
+    {
+      "id": "P1",
+      "name": "Zero-Cognitive Load",
+      "strategy": "Starve UBS.UD (Bio-Efficiency)",
+      "node_ref": "ubs_ud",
+      "rationale": "If the brain's energy-saving mode is the enemy, the solution must require ZERO decisions."
+    },
+    {
+      "id": "P2",
+      "name": "Immediate Feedback Loop",
+      "strategy": "Amplify UBS.UB (Acute Pain)",
+      "node_ref": "ubs_ub",
+      "rationale": "The streak counter works because it triggers loss aversion. Amplify this with real-time biological feedback."
+    }
+  ],
+  "environment": {
+    "form_factor": "Lock Screen Widget + Background Service",
+    "rationale": "P1 (Zero-Load) means the solution cannot require opening a full app. Must live in passive, ambient context.",
+    "anti_pattern": "Full-screen app with manual data entry"
+  },
+  "tools": {
+    "desirable_wrapper": {
+      "name": "Passive Calorie Tracker",
+      "hook": "See your fast progress without opening the app",
+      "layer": "Layer 1 (App)"
+    },
+    "effective_core": {
+      "name": "Circadian-Aware Notification Engine",
+      "mechanic": "Sends 'Shock' red notification if eating outside biological window",
+      "layer": "Layer 5 (Biology)"
+    }
+  },
+  "sop": [
+    {"step": 1, "actor": "System", "action": "Monitor background via HealthKit API"},
+    {"step": 2, "actor": "System", "action": "Detect eating window violation"},
+    {"step": 3, "actor": "System", "action": "Send Red Screen notification (UBS.UB trigger)"},
+    {"step": 4, "actor": "User", "action": "None — zero cognitive load"}
+  ],
+  "trojan_horse": {
+    "level_1_desirable": "Beautiful fasting timer widget (what they think they're buying)",
+    "level_5_effective": "Circadian rhythm alignment engine (what actually solves the problem)"
+  },
+  "strategic_inversion_table": [
+    {
+      "incumbent_method": "Manual food logging",
+      "root_cause_node": "ubs_ud (Bio-Efficiency)",
+      "new_principle": "P1: Zero-Cognitive Load — passive API sync, no logging"
+    },
+    {
+      "incumbent_method": "Streak counter (gamification)",
+      "root_cause_node": "ubs_ub (Acute Pain)",
+      "new_principle": "P2: Immediate Feedback — real-time biometric shock, not daily summary"
+    }
+  ]
+}
+```
+
+#### Method 4: `generate_blueprint` (Top-Level Orchestrator)
+
+```python
+def generate_blueprint(
+    self,
+    app_name: str,
+    raw_reviews: List[Dict],
+    filtered_reviews: List[Dict],
+    analysis: Dict,
+    reddit_data: List[Dict],
+    output_dir: Path,
+) -> Tuple[Path, Path]:
+    """
+    Top-level orchestrator. Runs the full 3-stage pipeline and writes artifacts.
+
+    Flow:
+        1. _extract_pain_reviews(filtered_reviews)     → pain_reviews
+        2. _extract_success_reviews(raw_reviews)        → success_reviews
+        3. construct_holographic_icp(...)               → icp (JSON)
+        4. map_system_dynamics(...)                     → system_map (JSON)
+        5. generate_eps_prescription(...)               → eps (JSON)
+        6. _render_blueprint_md(app_name, icp, system_map, eps) → .md file
+        7. _save_system_map_json(app_name, icp, system_map, eps) → .json file
+
+    Returns:
+        Tuple of (blueprint_md_path, system_map_json_path).
+    """
+```
+
+#### Helper Methods
+
+| Method | Signature | Purpose |
 | :--- | :--- | :--- |
-| Roadmap MVP | `reports/{niche_name}/roadmap_mvp.md` | Prioritized backlog of User Stories inverted from pain clusters. |
+| `_extract_pain_reviews` | `(filtered_reviews) → List[Dict]` | Filter to rating ≤ 2 from already-filtered reviews. |
+| `_extract_success_reviews` | `(raw_reviews) → List[Dict]` | Filter to rating = 5 AND word count > 30. |
+| `_curate_evidence` | `(reviews, max_quotes=10) → List[str]` | Select top Whale quotes for LLM context window. Prioritize length + domain vocab. |
+| `_render_blueprint_md` | `(app_name, icp, system_map, eps) → Path` | Jinja2 or f-string rendering of the final Markdown. |
+| `_save_system_map_json` | `(app_name, icp, system_map, eps) → Path` | Persist all three stage outputs as a single JSON artifact. |
 
-## 4.5 Effectiveness Constraints
+### B. `src/fetcher_reddit.py` — RedditFetcher (Context Signal)
 
-* **Surgically (Signal vs. Noise):** 3x-5x multiplier for Whale reviews (length > 40 words, domain vocab).
-* **Financially:** Revenue Leakage estimation differentiates "bad app" from "profitable gap."
-* **Creatively:** LLM used only for text synthesis; math/stats remain deterministic (Python).
+* **Class:** `RedditFetcher`
+* **Responsibility:** Fetch Reddit threads related to the niche to provide the "Context Signal" (how users talk about the problem *outside* the App Store).
+* **Apify Actor:** `apify/reddit-scraper`
+* **Depends on:** `ApifyClient` (same token as `Fetcher`).
+
+```python
+class RedditFetcher:
+    ACTOR_ID = "apify/reddit-scraper"
+
+    def __init__(self, apify_token: str, settings: Optional[Dict] = None):
+        """Same pattern as Fetcher. Uses shared Apify token."""
+
+    def fetch_threads(
+        self,
+        subreddits: List[str],
+        search_queries: List[str],
+        max_posts: int = 50,
+        sort: str = "relevance",
+    ) -> List[Dict[str, Any]]:
+        """
+        Fetch Reddit posts matching niche queries.
+
+        Args:
+            subreddits: List of subreddit names (e.g., ["intermittentfasting", "fasting"]).
+            search_queries: Search terms (e.g., ["best fasting app", "alternative to Zero"]).
+            max_posts: Max posts to retrieve per query.
+            sort: "relevance", "hot", "top", "new".
+
+        Returns:
+            List of dicts: [{title, body, subreddit, score, url, comments: [...]}]
+        """
+
+    def extract_context_themes(
+        self,
+        threads: List[Dict],
+    ) -> Dict[str, Any]:
+        """
+        Deterministic extraction (no LLM) of:
+          - alternatives_mentioned: List[str] (app/tool names)
+          - user_workflows: List[str] (how they describe their process)
+          - pain_contexts: List[str] (when/where the problem occurs)
+
+        Returns:
+            Dict with keys: alternatives_mentioned, user_workflows, pain_contexts.
+        """
+```
+
+**Configuration (targets.json extension):**
+```json
+{
+  "niche_name": "Fasting_Trackers",
+  "venture_architect": {
+    "subreddits": ["intermittentfasting", "fasting", "longevity"],
+    "search_queries": ["best fasting app", "alternative to Zero", "fasting tracker recommendation"]
+  }
+}
+```
+
+### C. `src/ai_client.py` — AIClient (LLM Wrapper)
+
+* **Class:** `AIClient`
+* **Responsibility:** Thin LLM wrapper. Sends system prompt + user prompt, returns parsed JSON. **No business logic** — all intelligence is in the prompts.
+* **Provider:** Gemini (primary, via `google-generativeai`). OpenAI (fallback).
+* **Constraint:** LLM used strictly for *inference and synthesis*. All deterministic metrics (risk_score, leakage, slope) remain in Python/Pandas.
+
+```python
+class AIClient:
+    def __init__(
+        self,
+        provider: str = "gemini",
+        model: str = "gemini-2.0-flash",
+        api_key: Optional[str] = None,
+    ):
+        """
+        Args:
+            provider: "gemini" or "openai".
+            model: Model identifier.
+            api_key: API key (or set GEMINI_API_KEY / OPENAI_API_KEY env var).
+        """
+
+    def generate_structured(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        response_schema: Optional[Dict] = None,
+        temperature: float = 0.3,
+        max_tokens: int = 4096,
+    ) -> Dict[str, Any]:
+        """
+        Send prompt and parse JSON response.
+
+        Args:
+            system_prompt: The persona + instructions (see §4.6).
+            user_prompt: The data context (evidence, ICP, system_map).
+            response_schema: Optional JSON schema for Gemini structured output mode.
+            temperature: Low (0.2-0.4) for analytical reasoning.
+            max_tokens: Max response length.
+
+        Returns:
+            Parsed JSON dict from LLM response.
+
+        Raises:
+            ValueError: If response is not valid JSON after 2 retries.
+        """
+
+    def _parse_json_response(self, raw_text: str) -> Dict[str, Any]:
+        """Extract JSON from LLM response. Handles ```json fences."""
+```
+
+**Environment Variables:**
+* `GEMINI_API_KEY` — loaded via `dotenv` (already in `.env`).
+* `OPENAI_API_KEY` — optional fallback.
+
+## 4.4 Data Flow (main.py Orchestration)
+
+The following pseudocode shows how `main.py` invokes the Venture Architect **after** the existing Phase 4-6 pipeline completes for each app:
+
+```python
+# === Existing pipeline (Phases 1-6) ===
+reviews = fetcher.fetch_reviews(app_url, ...)           # Raw reviews (ALL stars)
+filtered_reviews = fetcher.filter_reviews(reviews)       # Pain reviews (drops 5★)
+analysis = analyzer.analyze(filtered_reviews, ...)       # schema_app_gap
+forensic = forensic_analyzer.run_forensic(...)           # intelligence.json
+report = reporter.generate_report(...)                   # report_{app}.md
+
+# === NEW: Phase 7 — Venture Architect ===
+if args.venture_architect:   # New CLI flag: --venture-architect
+    # Fetch Reddit context (once per niche, cached)
+    if not reddit_cache:
+        va_config = targets_config.get("venture_architect", {})
+        reddit_data = reddit_fetcher.fetch_threads(
+            subreddits=va_config.get("subreddits", []),
+            search_queries=va_config.get("search_queries", []),
+        )
+        reddit_cache = reddit_data
+
+    # Run 3-stage pipeline
+    blueprint_path, system_map_path = venture_architect.generate_blueprint(
+        app_name=app["name"],
+        raw_reviews=reviews,              # ← IMPORTANT: unfiltered, includes 5★
+        filtered_reviews=filtered_reviews, # ← Pain signal
+        analysis=analysis,                 # ← schema_app_gap metrics
+        reddit_data=reddit_cache,          # ← Context signal (shared across apps)
+        output_dir=reports_dir,
+    )
+    print(f"✓ Venture Blueprint: {blueprint_path}")
+    print(f"✓ System Map: {system_map_path}")
+```
+
+**Key Design Decision:** `raw_reviews` (pre-filter) is passed to `VentureArchitect` so it can extract Success Signal (5★ whales). The variable already exists in `main.py` — no Fetcher changes needed.
+
+### 4.4.1 Component Initialization
+
+```python
+# In main.py, after existing component init:
+if args.venture_architect:
+    from src.ai_client import AIClient
+    from src.fetcher_reddit import RedditFetcher
+    from src.venture_architect import VentureArchitect
+
+    ai_client = AIClient(
+        provider=settings_config.get("venture_architect", {}).get("llm_provider", "gemini"),
+        model=settings_config.get("venture_architect", {}).get("llm_model", "gemini-2.0-flash"),
+    )
+    reddit_fetcher = RedditFetcher(
+        apify_token=args.apify_token or os.getenv("APIFY_API_KEY"),
+        settings=settings_config,
+    )
+    venture_architect = VentureArchitect(
+        ai_client=ai_client,
+        pain_keywords_path=config_dir / "pain_keywords.json",
+        settings=settings_config.get("venture_architect", {}),
+    )
+```
+
+## 4.5 The 7-Node System Dynamics Map
+
+The core intellectual model. Each node represents a force in the user's reality. The LLM infers these from review evidence.
+
+```
+                    ┌─────────────────┐
+                    │       UDO       │
+                    │ (Ultimate       │
+                    │  Desired        │
+                    │  Outcome)       │
+                    └────────┬────────┘
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+     ┌────────▼────────┐          ┌────────▼────────┐
+     │      UDS        │          │      UBS        │
+     │ (Driving System)│          │(Blocking System)│
+     │ Force → UDO     │          │ Force ← UDO     │
+     └───────┬─────────┘          └───────┬─────────┘
+             │                            │
+    ┌────────┴────────┐          ┌────────┴────────┐
+    │                 │          │                 │
+┌───▼───┐      ┌─────▼───┐  ┌──▼────┐      ┌────▼────┐
+│UDS.UD │      │ UDS.UB  │  │UBS.UD │      │ UBS.UB  │
+│Root   │      │ Root    │  │Root   │      │ Root    │
+│Driver │      │ Blocker │  │Driver │      │ Blocker │
+│of     │      │ of      │  │of     │      │ of      │
+│Success│      │ Success │  │Problem│      │ Problem │
+└───────┘      └─────────┘  └───────┘      └─────────┘
+
+LEGEND:
+  UDS.UD = Why the motivation works     (Biology: Survival Instinct)
+  UDS.UB = Why the motivation fails     (Psychology: Decision Fatigue)
+  UBS.UD = Why the problem keeps winning (Biology: Energy Conservation)
+  UBS.UB = What naturally kills problem  (Psychology: Acute Pain/Shame)
+```
+
+### 4.5.1 Depth Layers (Cross-cutting)
+
+Each node is analyzed across 5 depth layers:
+
+| Layer | Domain | Example (Fasting) |
+| :--- | :--- | :--- |
+| 1. App | Interface, Features | Timer UI, food log screen |
+| 2. Behavior | Habits, Workflows | Manual logging routine |
+| 3. System | Feedback Loops | Streak counter → loss aversion loop |
+| 4. Psychology | Biases, Emotions | Fear of death, social pressure, ego |
+| 5. Biology | Neurochemistry, Physiology | Dopamine (reward), cortisol (stress), ghrelin (hunger) |
+
+## 4.6 Prompt Engineering Design
+
+Each of the 3 stages uses a dedicated **System Prompt** with a specific persona and output contract. Temperature is kept low (0.2–0.4) for analytical reasoning.
+
+### 4.6.1 Stage 1 System Prompt: ICP Construction
+
+```
+SYSTEM PROMPT — STAGE 1: HOLOGRAPHIC ICP
+
+You are a Cultural Anthropologist and Consumer Psychologist.
+
+YOUR TASK: Construct a "Holographic ICP" (Ideal Customer Profile) by
+triangulating three independent data signals about users of "{app_name}".
+
+DATA SIGNALS PROVIDED:
+1. PAIN SIGNAL (1-2★ App Store reviews): What makes users LEAVE.
+2. SUCCESS SIGNAL (5★ "Whale" reviews, 30+ words): What makes users STAY.
+3. CONTEXT SIGNAL (Reddit threads): How users talk about this problem
+   OUTSIDE the app — alternatives, workarounds, real-world triggers.
+
+ANALYSIS RULES:
+- If Pain says "Too complex" but Success says "Love the depth," the ICP is
+  SPLIT. Identify which segment is the "Whale" (high-LTV).
+- The "Ultimate Desired Outcome" (UDO) is NEVER the feature itself.
+  Go deeper: "Weight loss" → "Social confidence" → "Effortless metabolic control."
+- Use Reddit to find WHERE the app fits in their life (trigger context).
+- Look for ALTERNATIVES mentioned: competitors, spreadsheets, pen & paper.
+
+OUTPUT: Respond with a single JSON object matching this exact schema:
+{who, why_udo, what_how_workflow, when_trigger, alternatives,
+ icp_segment, pain_success_paradox}
+```
+
+### 4.6.2 Stage 2 System Prompt: System Dynamics Mapping
+
+```
+SYSTEM PROMPT — STAGE 2: 7-NODE SYSTEM DYNAMICS MAP
+
+You are an Evolutionary Biologist and Behavioral Systems Architect.
+
+YOUR TASK: Given the Holographic ICP and curated review evidence for
+"{app_name}", populate a 7-Node System Dynamics Map.
+
+THE 7 NODES:
+1. UDO  — Ultimate Desired Outcome (the "adverb + noun" of their life)
+2. UDS  — Ultimate Driving System (conscious force TOWARD UDO)
+3. UDS.UD — Root Driver of UDS (why the motivation succeeds — usually Layer 5 Biology)
+4. UDS.UB — Root Blocker of UDS (why the motivation fails — usually Layer 4 Psychology)
+5. UBS  — Ultimate Blocking System (conscious force AWAY from UDO)
+6. UBS.UD — Root Driver of UBS (why the PROBLEM keeps winning — usually Layer 5 Biology)
+7. UBS.UB — Root Blocker of UBS (what NATURALLY kills the problem — the system's own weakness)
+
+DEPTH LAYERS (apply to each node):
+  Layer 1: App (Interface/Features)
+  Layer 2: Behavior (Habits/Workflows)
+  Layer 3: System (Feedback Loops)
+  Layer 4: Psychology (Biases — Fear, Ego, Status, Loss Aversion)
+  Layer 5: Biology (Dopamine, Cortisol, Ghrelin, Energy Conservation)
+
+CRITICAL RULES:
+- Every node MUST include at least one "evidence" quote from the reviews or Reddit.
+- UDS.UD and UBS.UD MUST reach Layer 5 (Biology). If you stop at Layer 3, go deeper.
+- "Incumbent Failure" must explain which Layer the current app addresses vs. which it ignores.
+- Think like Darwin, not like a PM. The user is an organism optimizing survival, not a "customer."
+
+OUTPUT: Respond with a single JSON object matching this exact schema:
+{udo, uds, uds_ud, uds_ub, ubs, ubs_ud, ubs_ub, incumbent_failure, depth_layers}
+```
+
+### 4.6.3 Stage 3 System Prompt: EPS Prescription
+
+```
+SYSTEM PROMPT — STAGE 3: EPS PRESCRIPTION GENERATOR
+
+You are a Product Architect and Strategic Inverter.
+
+YOUR TASK: Given the 7-Node System Dynamics Map and the ICP for "{app_name}",
+derive the EPS (Environment, Principles, SOP & Tools) Solution System.
+
+THE INVERSION RULES (non-negotiable):
+1. Principles MUST map 1:1 to system nodes:
+   - Principle to AMPLIFY UDS.UD (feed the root motivation)
+   - Principle to DISABLE UDS.UB (remove the motivation killer)
+   - Principle to STARVE UBS.UD (make the problem's engine work FOR us)
+   - Principle to AMPLIFY UBS.UB (trigger the problem's natural weakness)
+2. Environment is DERIVED from Principles:
+   - If Principle says "Zero Cognitive Load," then Environment CANNOT be a full app.
+   - State the anti-pattern (what the incumbent does wrong).
+3. Tools have TWO layers:
+   - "Desirable Wrapper" (Layer 1 — the feature the user THINKS they want)
+   - "Effective Core" (Layer 5 — the mechanism that actually solves the root cause)
+4. SOP must specify actor ("User" or "System") for each step.
+
+THE STRATEGIC INVERSION TABLE:
+For each major incumbent method, show:
+  [Incumbent Method] → [Root Cause Node] → [New Principle]
+
+OUTPUT: Respond with a single JSON object matching this exact schema:
+{principles, environment, tools, sop, trojan_horse, strategic_inversion_table}
+```
+
+### 4.6.4 Prompt Assembly (User Prompt)
+
+The **user prompt** for each stage is assembled deterministically in Python by `VentureArchitect`:
+
+| Stage | User Prompt Content |
+| :--- | :--- |
+| Stage 1 (ICP) | Top 10 Pain quotes + Top 10 Success quotes + Reddit themes summary + `analysis.signals` summary |
+| Stage 2 (SysMap) | Full ICP JSON (from Stage 1) + Top 15 curated evidence quotes (mixed Pain/Success) + Reddit context |
+| Stage 3 (EPS) | Full ICP JSON + Full System Map JSON (from Stage 2) + Incumbent app name |
+
+**Token Budget:** Each user prompt is capped at ~3000 tokens of evidence. `_curate_evidence()` selects the most information-dense quotes (Whale priority).
+
+## 4.7 Output Artifacts
+
+### A. `reports/{niche_name}/venture_blueprint_{app}.md`
+
+The Markdown report rendered from the three JSON stages:
+
+```markdown
+# Venture Blueprint: {App Name}
+> Generated: {YYYY-MM-DD} | Niche: {niche_name}
+
+## 1. The System Map
+
+### Ultimate Desired Outcome (UDO)
+> "{udo.statement}" — {udo.adverb} {udo.noun}
+
+### Driving Forces (→ UDO)
+| Node | Label | Layer | Evidence |
+| UDS | {uds.label} | {uds.layer} | "{uds.evidence[0]}" |
+| UDS.UD | {uds_ud.label} | {uds_ud.layer} | "{uds_ud.evidence[0]}" |
+| UDS.UB | {uds_ub.label} | {uds_ub.layer} | "{uds_ub.evidence[0]}" |
+
+### Blocking Forces (← UDO)
+| Node | Label | Layer | Evidence |
+| UBS | {ubs.label} | {ubs.layer} | "{ubs.evidence[0]}" |
+| UBS.UD | {ubs_ud.label} | {ubs_ud.layer} | "{ubs_ud.evidence[0]}" |
+| UBS.UB | {ubs_ub.label} | {ubs_ub.layer} | "{ubs_ub.evidence[0]}" |
+
+### Incumbent Failure
+{incumbent_failure}
+
+---
+
+## 2. The Strategic Inversion
+
+| Incumbent Method | Root Cause | New Principle |
+| :--- | :--- | :--- |
+{for row in strategic_inversion_table}
+| {row.incumbent_method} | {row.root_cause_node} | {row.new_principle} |
+{endfor}
+
+---
+
+## 3. The EPS Prescription
+
+### Environment (Where)
+**{environment.form_factor}**
+> {environment.rationale}
+> ❌ Anti-pattern: {environment.anti_pattern}
+
+### Principles (Why)
+{for p in principles}
+- **{p.id}: {p.name}** — {p.strategy}
+  > {p.rationale}
+{endfor}
+
+### Tools (What)
+- 🎁 **Desirable Wrapper:** {tools.desirable_wrapper.name} — {tools.desirable_wrapper.hook}
+- ⚙️ **Effective Core:** {tools.effective_core.name} — {tools.effective_core.mechanic}
+
+### SOP (How)
+{for s in sop}
+{s.step}. [{s.actor}] {s.action}
+{endfor}
+
+---
+
+## 4. The Trojan Horse
+- **Level 1 (What they buy):** {trojan_horse.level_1_desirable}
+- **Level 5 (What solves it):** {trojan_horse.level_5_effective}
+```
+
+### B. `reports/{niche_name}/{app}_system_map.json`
+
+Persists all three stage outputs for programmatic consumption:
+
+```json
+{
+  "app_name": "Zero Fasting Health",
+  "generated_at": "2026-02-11T10:30:00Z",
+  "icp": { ... },
+  "system_dynamics": { ... },
+  "eps_prescription": { ... }
+}
+```
+
+## 4.8 Configuration Changes
+
+### `config/targets.json` (new optional block)
+```json
+{
+  "niche_name": "Fasting_Trackers",
+  "venture_architect": {
+    "subreddits": ["intermittentfasting", "fasting", "longevity"],
+    "search_queries": [
+      "best fasting app",
+      "alternative to Zero",
+      "fasting tracker recommendation"
+    ]
+  },
+  "apps": [ ... ]
+}
+```
+
+### `config/settings.json` (new optional block)
+```json
+{
+  "venture_architect": {
+    "llm_provider": "gemini",
+    "llm_model": "gemini-2.0-flash",
+    "temperature": 0.3,
+    "max_evidence_quotes": 10,
+    "success_review_min_words": 30,
+    "enabled": false
+  }
+}
+```
+
+### CLI Flag
+```
+python main.py --venture-architect
+```
+When absent, Phase 7 is skipped entirely (zero LLM cost). This keeps the default pipeline deterministic.
+
+## 4.9 New Dependencies
+
+| Package | Version | Purpose |
+| :--- | :--- | :--- |
+| `google-generativeai` | >=0.5.0 | Gemini API client (primary LLM) |
+| `openai` | >=1.0.0 | OpenAI fallback (optional) |
+
+*Note: `apify-client` and `python-dotenv` are already installed.*
+
+## 4.10 Effectiveness Constraints
+
+* **Deterministic Guardrail:** All Phase 1-6 metrics (risk_score, leakage, slope) remain Python/Pandas. LLM is used *only* for inference (ICP, System Dynamics, EPS) — never for scoring.
+* **Reproducibility:** Low temperature (0.3) + structured JSON output mode = near-deterministic LLM responses.
+* **Cost Control:** `--venture-architect` flag is opt-in. Default runs are LLM-free.
+* **Token Efficiency:** Evidence is curated to ~3000 tokens per stage. 3 LLM calls per app × ~$0.001/call (Gemini Flash) = ~$0.003/app.
+* **Auditability:** All LLM outputs saved as `{app}_system_map.json`. Every claim traces back to an evidence quote.
 
 ---
 
 # 5. DESIGN STATUS
 
-**Status:** ✅ **Phase 6 Complete**
+**Status:** ✅ **Phase 7 Designed — Ready for Execution**
 
-* Design aligned with Phase 6 (Predictive Analytics) requirements.
-* SlopeDeltaCalculator, FermiEstimator, Named Spikes, Whale Detector, and Reporter Integration documented.
-* schema_app_gap includes monthly_leakage_usd, slope_delta, slope_delta_insight.
-* T-017 Safe Harbor: risk_score < 50 required.
-* Phase 7 (Prescriptive / Architect) marked as Deferred.
+| Phase | Status | Notes |
+| :--- | :--- | :--- |
+| Phase 1-2 (ETL) | ✅ Complete | Fetcher, config validation, review caching. |
+| Phase 3 (Analysis) | ✅ Complete | Analyzer, risk scoring, pain keywords. |
+| Phase 4 (Forensic Intelligence) | ✅ Complete | ForensicAnalyzer, N-Grams, timeline, migration. |
+| Phase 5 (Reporting) | ✅ Complete | Reporter, individual + niche reports, leaderboard. |
+| Phase 6 (Predictive Analytics) | ✅ Complete | SlopeDelta, Fermi, Named Spikes, Whale Detector, T-024 integration. |
+| Phase 7 (Venture Architect) | 📐 Designed | `VentureArchitect`, `RedditFetcher`, `AIClient` — 3-stage LLM pipeline. Ready for implementation. |
+
+### Phase 7 Implementation Checklist
+- [ ] `src/ai_client.py` — Gemini/OpenAI wrapper with `generate_structured()`.
+- [ ] `src/fetcher_reddit.py` — Reddit thread fetcher via `apify/reddit-scraper`.
+- [ ] `src/venture_architect.py` — 3-stage orchestrator (ICP → SysMap → EPS).
+- [ ] `main.py` — Add `--venture-architect` CLI flag and Phase 7 orchestration block.
+- [ ] `config/settings.json` — Add `venture_architect` settings block.
+- [ ] `requirements.txt` — Add `google-generativeai>=0.5.0`.
+- [ ] Integration test: Run full pipeline on Fasting_Trackers niche, verify `venture_blueprint_*.md` output.
