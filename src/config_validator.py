@@ -141,6 +141,16 @@ def validate_settings_config(config: Dict[str, Any]) -> bool:
             raise ValueError("'venture_architect.llm_model' must be a string")
         if "llm_provider" in va and not isinstance(va["llm_provider"], str):
             raise ValueError("'venture_architect.llm_provider' must be a string")
+        # T-030: optional Reddit context
+        if "subreddits" in va and not isinstance(va["subreddits"], list):
+            raise ValueError("'venture_architect.subreddits' must be a list")
+        if "search_queries" in va and not isinstance(va["search_queries"], list):
+            raise ValueError("'venture_architect.search_queries' must be a list")
+        # Phase 7.4: optional Reddit limits (configurable posts/comments)
+        if "max_posts" in va and not isinstance(va["max_posts"], int):
+            raise ValueError("'venture_architect.max_posts' must be an integer")
+        if "max_comments_per_post" in va and not isinstance(va["max_comments_per_post"], int):
+            raise ValueError("'venture_architect.max_comments_per_post' must be an integer")
 
     return True
 

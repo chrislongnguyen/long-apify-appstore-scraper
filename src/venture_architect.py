@@ -40,9 +40,15 @@ ANALYSIS RULES:
 
 OUTPUT: Respond with a single JSON object matching this exact schema:
 {who, why_udo, what_how_workflow, when_trigger, alternatives,
- icp_segment, pain_success_paradox}
+ icp_segment, pain_success_paradox, user_personas}
 
 The "who" field must be a dict with keys like demographic, psychographic.
+
+I4 — USER PERSONAS (required): Include exactly 3 non-overlapping user_personas. Each persona must have:
+- persona_name: short name (e.g. "The Reluctant Quitter")
+- archetype: one-line archetype label
+- user_story: 5-6 concise sentences tracing their journey: Who they are → What they want (UDO) → What drives them (UDS/UDS.UD) → What blocks them (UBS/UBS.UD) → Why they fail (UDS.UB) → What could save them (UBS.UB)
+- segment: "primary", "secondary", or "whale_segment"
 
 IMPORTANT: Output ONLY valid JSON. No preamble, no explanation, no markdown.
 All string values must be plain text (no nested objects where strings are expected)."""
@@ -205,15 +211,54 @@ class VentureArchitect:
         combined.sort(key=lambda x: -x[0])
         return [q for _, q in combined[:max_quotes]]
 
-    def _summarize_reddit(self, reddit_data: List[Dict]) -> str:
-        """Summarize Reddit themes for ICP. Returns empty string if no data."""
+    def _curate_reddit_evidence(
+        self, reddit_data: List[Dict], max_quotes: int = 10
+    ) -> List[str]:
+        """I2: Curate Reddit quotes for Stage 2 evidence pool (System Map). Returns list of strings."""
+        if not reddit_data:
+            return []
+        lines = []
+        for item in reddit_data[:max_quotes * 2]:
+            if len(lines) >= max_quotes:
+                break
+            title = (item.get("title") or "").strip()
+            text = (item.get("text") or "").strip()[:200]
+            subreddit = (item.get("subreddit") or "").strip()
+            prefix = f"Reddit r/{subreddit}: " if subreddit else "Reddit: "
+            if title or text:
+                line = f"{prefix}{title}" if title else f"{prefix}{text}"
+                if text and title and text != title:
+                    line += f" | {text}"
+                lines.append(line)
+        return lines[:max_quotes]
+
+    def _summarize_reddit(
+        self,
+        reddit_data: List[Dict],
+        max_items: int = 25,
+        include_comments: bool = True,
+        max_comments_in_summary: int = 2,
+    ) -> str:
+        """Summarize Reddit themes for ICP (Context Signal). I3: optional comment sampling per post."""
         if not reddit_data:
             return "No Reddit data available. Infer context from review text only."
         themes = []
-        for i, item in enumerate(reddit_data[:20]):
-            title = item.get("title") or item.get("text", "")[:100]
-            if title:
-                themes.append(f"- {title}")
+        for item in reddit_data[:max_items]:
+            title = (item.get("title") or "").strip()
+            text = (item.get("text") or "").strip()[:150]
+            subreddit = (item.get("subreddit") or "").strip()
+            if not title and not text:
+                continue
+            prefix = f"r/{subreddit}: " if subreddit else ""
+            line = f"- {prefix}{title}" if title else f"- {prefix}{text}"
+            if text and title and text != title:
+                line += f" | {text}"
+            if include_comments:
+                comments = item.get("comments") or []
+                for c in (comments if isinstance(comments, list) else [])[:max_comments_in_summary]:
+                    if c and isinstance(c, str) and c.strip():
+                        line += f" [Comment: {c.strip()[:80]}...]" if len(c.strip()) > 80 else f" [Comment: {c.strip()}]"
+            themes.append(line)
         return "\n".join(themes) if themes else "Reddit data provided but no extractable themes."
 
     def _repair_icp_response(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -287,6 +332,29 @@ class VentureArchitect:
             }
         else:
             out["pain_success_paradox"] = {"pain_says": "", "success_says": "", "inference": ""}
+        # I4: user_personas must be list of dicts with persona_name, archetype, user_story, segment
+        up = out.get("user_personas")
+        if not isinstance(up, list):
+            out["user_personas"] = []
+        else:
+            repaired = []
+            segments = ("primary", "secondary", "whale_segment")
+            for i, p in enumerate(up[:3]):
+                if not isinstance(p, dict):
+                    continue
+                name = p.get("persona_name") or p.get("name") or p.get("archetype") or f"Persona {i + 1}"
+                archetype = p.get("archetype") or p.get("persona_name") or name
+                story = p.get("user_story") or p.get("story") or p.get("journey") or ""
+                if isinstance(story, list):
+                    story = " ".join(str(s) for s in story)
+                seg = p.get("segment") or (segments[i] if i < len(segments) else "primary")
+                repaired.append({
+                    "persona_name": str(name),
+                    "archetype": str(archetype),
+                    "user_story": str(story),
+                    "segment": str(seg),
+                })
+            out["user_personas"] = repaired
         return out
 
     def _repair_system_map_response(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -364,6 +432,7 @@ class VentureArchitect:
             "alternatives": [],
             "icp_segment": {"primary": "Error", "secondary": "Error", "whale_segment": "Error"},
             "pain_success_paradox": {"pain_says": "", "success_says": "", "inference": "Stage 1 failed"},
+            "user_personas": [],
         }
 
     @staticmethod
@@ -444,21 +513,26 @@ Produce the Holographic ICP JSON for app "{app_name}"."""
         success_reviews: List[Dict],
         analysis: Dict,
         app_name: str,
+        reddit_data: Optional[List[Dict]] = None,
     ) -> Dict[str, Any]:
-        """Stage 2: Populate 7-Node System Dynamics Map."""
+        """Stage 2: Populate 7-Node System Dynamics Map. I2: Reddit evidence fused with App Store quotes."""
         evidence = self._curate_evidence(pain_reviews, success_reviews, max_quotes=15)
+        reddit_evidence = self._curate_reddit_evidence(reddit_data or [], max_quotes=10)
         icp_json = json.dumps(icp, indent=2)
         metrics = analysis.get("metrics", {}) or {}
 
         user_prompt = f"""ICP (from Stage 1):
 {icp_json}
 
-CURATED EVIDENCE QUOTES:
+CURATED EVIDENCE QUOTES (App Store reviews):
 {chr(10).join(evidence) if evidence else "(none)"}
+
+REDDIT EVIDENCE QUOTES:
+{chr(10).join(reddit_evidence) if reddit_evidence else "(none)"}
 
 METRICS: risk_score={metrics.get('risk_score')}, negative_ratio={metrics.get('negative_ratio')}
 
-Produce the 7-Node System Dynamics Map JSON for app "{app_name}". Ensure uds_ud and ubs_ud reach Layer 5 (Biology)."""
+Produce the 7-Node System Dynamics Map JSON for app "{app_name}". Ensure uds_ud and ubs_ud reach Layer 5 (Biology). Cite evidence from reviews or Reddit where applicable."""
 
         system_prompt = SYSTEM_DYNAMICS_PROMPT.replace("{app_name}", app_name)
         data = self.ai_client.generate_structured(
@@ -548,10 +622,11 @@ Produce the EPS Prescription JSON for app "{app_name}". Include at least 4 princ
             logger.error("[%s] Stage 1 (ICP) failed: %s", app_name, e)
             icp = self._empty_icp()
 
-        # Stage 2
+        # Stage 2 (I2: pass Reddit evidence into System Map)
         try:
             system_map = self.map_system_dynamics(
                 icp, pain_reviews, success_reviews, analysis, app_name,
+                reddit_data=reddit_data,
             )
         except Exception as e:
             logger.error("[%s] Stage 2 (System Map) failed: %s", app_name, e)

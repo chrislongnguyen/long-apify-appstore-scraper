@@ -66,6 +66,10 @@ class MockAIClient:
         if "holographic icp" in p:
             return {
                 "who": {"demographic": "25-40", "psychographic": "goal-oriented"},
+                "user_personas": [
+                    {"persona_name": "The Casual Optimizer", "archetype": "Habit curious", "user_story": "Wants to lose weight without strict diets. Driven by long-term health (UDS.UD). Blocked by instant gratification (UBS). Fails when routine breaks (UDS.UB). Saved by low-friction triggers (UBS.UB).", "segment": "primary"},
+                    {"persona_name": "The Biohacker", "archetype": "Data-driven", "user_story": "Tracks everything. Wants metabolic clarity. Driven by optimization. Blocked by complexity. Fails when data is noisy. Saved by simple feedback loops.", "segment": "whale_segment"},
+                ],
                 "why_udo": "Effortless metabolic control",
                 "what_how_workflow": ["Open app", "Track progress", "Adjust behavior"],
                 "when_trigger": "After meals",

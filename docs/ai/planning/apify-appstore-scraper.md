@@ -2,23 +2,25 @@
 phase: planning
 title: Execution Plan - App Volatility Analyzer
 description: Step-by-step implementation matrix for the Python ETL pipeline (Fetcher -> Analyzer -> Reporter -> Venture Architect).
-last_updated: 2026-02-11
+last_updated: 2026-02-12
 ---
 
 # QUICK STATUS SUMMARY
 
 **Current Phase:** Phase 7 — The Venture Architect  
-**Current Sprint:** Phase 7.2 (Orchestration)  
-**Overall Progress:** Phases 1-6 Complete; T-031 Done; Phase 7.1–7.2 Complete  
-**Next Task:** T-028 (Success Signal) or T-029 (Context Mocking)  
-**Status:** ✅ T-031 Done — Learna_English Risk Score 2.74 → 60.0 (Severity-First validated)
+**Current Sprint:** Phase 7.4 (Post–T-030 Improvements)  
+**Overall Progress:** Phases 1–7.3 Complete; T-028, T-029, T-030 Done  
+**Next Task:** Phase 7.4 improvements (Reddit relevance, Stage 2 evidence fusion, data practices, User Personas)  
+**Status:** ✅ Phase 7.2–7.3 Complete — Venture Architect + Reddit context wired; first blueprint run (Opal_Screen_Time) succeeded
 
-**Recent Achievements (2026-02-11):**
-- ✅ Phase 6 Complete: T-020 to T-024 (Fermi, SlopeDelta, Named Spikes, Whale Detector, Reporter Integration)
-- ✅ Ran ViralApps niche (5 apps): Revenue Leakage, Momentum labels, Financial Impact in reports
-- ✅ Design doc updated with full Phase 7 architecture (3-stage LLM pipeline, 7-Node System Dynamics)
-- ✅ Requirements doc updated with "5-Layer Root Cause Analysis" and "EPS Generator" specs
-- 🚧 Phase 7 design approved — entering execution
+**Recent Achievements (2026-02-12):**
+- ✅ Phase 7.2 Complete: T-028 (Success Signal Integration), T-029 (Context Mocking / Graceful Degradation)
+- ✅ Phase 7.3 Complete: T-030 (Reddit Scraper — `fetcher_reddit.py`, `--reddit`, cache to `reddit_context.json`)
+- ✅ Reddit input fix: actor `automation-lab/reddit-scraper` uses `urls` + `maxPostsPerSource`; subreddit + search-query URLs
+- ✅ LLM parser hardened; stage safety nets; first venture blueprint + system_map generated
+- 🚧 Phase 7.4: Four improvements documented (relevance, Stage 2 fusion, data practices, User Personas)
+
+**Planning Update Summary (2026-02-12):** Phase 7.2 and 7.3 are complete: T-028 (Success Signal Integration), T-029 (Context Mocking), and T-030 (Reddit Scraper) are done. Venture Architect runs with `--venture-architect --reddit`; Reddit context is fetched once per niche, cached to `reddit_context.json`, and passed into Stage 1 (ICP). Reddit input mismatch for `automation-lab/reddit-scraper` was fixed (urls + maxPostsPerSource). Four post–T-030 improvements are now in the backlog as Phase 7.4: I1 (Reddit relevance — Search Query Design + LLM triangulation; optional keyword filter later), I2 (Stage 2 evidence fusion — pass Reddit quotes into System Map evidence pool), I3 (Reddit data practices — dedup, relevance scorer, optional comment sampling), I4 (User Personas in blueprint — 3 non-overlapping personas + 5–6 sentence user stories; schema + prompt + template). Next focus: I2 (Stage 2 fusion) and I4 (User Personas) for highest signal and UX impact.
 
 ---
 
@@ -96,20 +98,31 @@ last_updated: 2026-02-11
 | **T-026** | **Venture Architect Module** | *Systematically* (3-stage pipeline: ICP → SysMap → EPS) | **High (8)** | T-025 | ✅ Done |
 | **T-027** | **Blueprint Reporter & Template** | *Beautifully* (Jinja2 template → venture_blueprint.md) | **Med (4)** | T-026 | ✅ Done |
 
-### Phase 7.2: Orchestration & Data Plumbing — MUST HAVE
+### Phase 7.2: Orchestration & Data Plumbing — MUST HAVE ✅
 *Goal: Connect the Scraper pipeline to the Architect.*
 
 | ID | Task (Verb) | Target Outcome (Adverb) | Risk Factor | Deps | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **T-028** | **Success Signal Integration** | *Completely* (Pass raw reviews incl. 5★ to Architect) | **Low (2)** | T-026 | ⏳ Blocked |
-| **T-029** | **Context Mocking & Graceful Degradation** | *Resiliently* (Run without Reddit; mock Context Signal for testing) | **Low (3)** | T-026 | ⏳ Blocked |
+| **T-028** | **Success Signal Integration** | *Completely* (Pass raw reviews incl. 5★ to Architect) | **Low (2)** | T-026 | ✅ Done |
+| **T-029** | **Context Mocking & Graceful Degradation** | *Resiliently* (Run without Reddit; mock Context Signal for testing) | **Low (3)** | T-026 | ✅ Done |
 
-### Phase 7.3: Context Layer (Reddit) — SHOULD HAVE
+### Phase 7.3: Context Layer (Reddit) — SHOULD HAVE ✅
 *Goal: Add external validation signal from Reddit.*
 
 | ID | Task (Verb) | Target Outcome (Adverb) | Risk Factor | Deps | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **T-030** | **Reddit Scraper Integration** | *Broadly* (Fetch threads, wire into ICP construction) | **Med (5)** | T-028, T-029 | ⏳ Blocked |
+| **T-030** | **Reddit Scraper Integration** | *Broadly* (Fetch threads, wire into ICP construction) | **Med (5)** | T-028, T-029 | ✅ Done |
+
+### Phase 7.4: Post–T-030 Improvements — NICE TO HAVE ✅
+*Goal: Strengthen Reddit signal quality, fuse Reddit into System Map evidence, improve data practices, add User Personas to blueprint.*
+
+| ID | Improvement | Target Outcome | Risk Factor | Deps | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **I1** | **Reddit Relevance** | *Clearly* (Search query design + LLM triangulation; optional keyword-density pre-filter later) | **Low (2)** | T-030 | ✅ Done (doc: T-30 Q&A) |
+| **I2** | **Stage 2 Evidence Fusion** | *Directly* (Pass Reddit quotes into `map_system_dynamics` evidence pool alongside App Store reviews) | **Med (4)** | T-026, T-030 | ✅ Done |
+| **I3** | **Data Practices (Reddit)** | *Cleanly* (Dedup by URL; optional comment sampling in `_summarize_reddit`) | **Med (4)** | T-030 | ✅ Done |
+| **I4** | **User Personas in Blueprint** | *Actionably* (3 non-overlapping personas + 5–6 sentence user stories; schema + prompt + template) | **Med (5)** | T-026, T-027 | ✅ Done |
+| **Config** | **Reddit limits configurable** | *Explicitly* (`venture_architect.max_posts`, `max_comments_per_post` in targets.json) | **Low (1)** | T-030 | ✅ Done |
 
 ---
 
@@ -481,6 +494,18 @@ last_updated: 2026-02-11
 
 ---
 
+### Phase 7.4: Post–T-030 Improvements (I1–I4) — Specs
+
+* **I1 — Reddit Relevance:** Current mechanism: Search Query Design (subreddit + search-query URLs) + Reddit `sort="relevance"` + LLM triangulation. Optional later: keyword-density pre-filter before `_summarize_reddit()` to reduce token dilution or support explicit Reddit citations. Doc: `docs/ai/implementation/T-30 Q&A`.
+
+* **I2 — Stage 2 Evidence Fusion:** Stage 2 (`map_system_dynamics`) currently receives only `_curate_evidence(pain_reviews, success_reviews)` (App Store). Reddit enters only Stage 1 (ICP). To populate UDS/UBS nodes with Reddit evidence: pass a subset of Reddit quotes (e.g. from `_summarize_reddit` or a dedicated `_curate_reddit_evidence()`) into the Stage 2 user prompt alongside curated App Store quotes.
+
+* **I3 — Data Practices (Reddit):** App Store pipeline is production-quality. Reddit pipeline is alpha: no relevance filter, no dedup by URL, comments not summarized for LLM. Improvements: dedup by URL before normalization; optional relevance scorer (keyword overlap or similarity to niche); optional comment sampling (top 2–3 per post) in `_summarize_reddit()`.
+
+* **I4 — User Personas in Blueprint:** Blueprint currently jumps to System Map; no personas or user stories. Add to ICP (or Stage 0.5): `user_personas: List[UserPersona]` with `persona_name`, `archetype`, `user_story` (5–6 sentences: User → UDO → UDS/UBS → UDS.UB/UBS.UB), `segment`. Prompt: "Identify 3 non-overlapping user personas; for each write a 5–6 sentence User Story tracing their journey." Template: add "## 0. The People" at top of `venture_blueprint.j2`.
+
+---
+
 ### Risk Register (Phase 7)
 
 | # | Risk | Impact | Likelihood | Mitigation | Owner |
@@ -527,37 +552,20 @@ T-025 (AI Client + Schemas) ←── HARD BLOCKER
 
 # 5. NEXT ACTIONS (Phase 7 Sprint)
 
-### Immediate (Phase 7.1 + 7.2 — This Sprint)
+### Completed (Phase 7.1–7.3)
 
-1.  **T-025 (AI Client & Schemas):** Create `src/ai_client.py` + Pydantic models. This is the **hard blocker** — build first.
-    * Add `google-generativeai`, `pydantic` to `requirements.txt`.
-    * Unit test with mock LLM response.
+- **T-025 to T-027:** AI Client, Venture Architect core, Blueprint Reporter ✅
+- **T-028:** `--venture-architect` CLI, main.py wiring, lazy init VentureArchitect + RedditFetcher ✅
+- **T-029:** Graceful degradation with `reddit_data=[]`; prompts adapt when no Reddit ✅
+- **T-030:** `src/fetcher_reddit.py`, `--reddit`, `venture_architect` block in targets, cache to `reddit_context.json` ✅
 
-2.  **T-026 (Venture Architect Core):** Create `src/venture_architect.py` with 3-stage pipeline.
-    * Implement `construct_holographic_icp()`, `map_system_dynamics()`, `generate_eps_prescription()`.
-    * Implement `_curate_evidence()` cluster summarizer (token budget control).
-    * Smoke test on Fasting_Trackers niche.
+### Phase 7.4 — Post–T-030 Improvements (Completed)
 
-3.  **T-027 (Blueprint Reporter):** ✅ Completed — Jinja2 template + `Reporter.render_venture_blueprint()` implemented.
-    * Added `jinja2` to `requirements.txt`.
-    * Verified generated Markdown blueprint artifacts render correctly.
-
-4.  **T-028 (Success Signal Integration):** Add `--venture-architect` CLI flag to `main.py`. Wire orchestration.
-
-5.  **T-029 (Context Mocking):** Ensure pipeline works with `reddit_data=[]`. Create mock fixture.
-
-### Deferred (Phase 7.3 — Next Sprint)
-
-6.  **T-030 (Reddit Scraper):** Create `src/fetcher_reddit.py`. Wire Reddit → ICP. Update `targets.json` schema.
-
-### Suggested Execution Order
-
-```
-Day 1:  T-025 (AI Client)  →  T-026 Stage 1 (ICP)
-Day 2:  T-026 Stage 2+3 (SysMap + EPS)  →  T-029 (Graceful Degradation)
-Day 3:  T-027 (Template)  →  T-028 (main.py wiring)  →  Smoke Test
-Day 4:  T-030 (Reddit — if time permits)
-```
+1.  **I1 (Reddit Relevance):** ✅ Documented in T-30 Q&A: Search Query Design + LLM triangulation; optional keyword-density pre-filter later.
+2.  **I2 (Stage 2 Evidence Fusion):** ✅ `_curate_reddit_evidence()` added; Reddit quotes passed into `map_system_dynamics()` user prompt as "REDDIT EVIDENCE QUOTES"; `generate_blueprint` passes `reddit_data` to Stage 2.
+3.  **I3 (Data Practices — Reddit):** ✅ Dedup by URL in `_normalize_items()`; comment sampling in `_summarize_reddit(include_comments=True, max_comments_in_summary=2)`.
+4.  **I4 (User Personas in Blueprint):** ✅ `UserPersona` schema + `HolographicICP.user_personas`; ICP prompt asks for 3 personas + 5–6 sentence user story; `_repair_icp_response` coerces `user_personas`; "## 0. The People" at top of `venture_blueprint.j2`.
+5.  **Config (Reddit limits):** ✅ `venture_architect.max_posts` and `max_comments_per_post` in targets.json; `fetcher_reddit.fetch_niche_context(max_posts, max_comments_per_post)`; main.py reads from va_block; config_validator validates optional ints.
 
 ---
 
@@ -569,8 +577,9 @@ Day 4:  T-030 (Reddit — if time permits)
 - **Phase 5:** 100% ✅ (T-016 to T-019 Complete)
 - **Phase 6 (Predictive Analytics):** 100% ✅ (T-020 to T-024, T-031 Severity-First Complete)
 - **Phase 7.1 (Core Intelligence):** 100% ✅ (T-025 ✅, T-026 ✅, T-027 ✅)
-- **Phase 7.2 (Orchestration):** 0% 🚧 (T-028, T-029 pending)
-- **Phase 7.3 (Context Layer):** 0% ⏳ (T-030 — SHOULD HAVE, deferred to next sprint)
+- **Phase 7.2 (Orchestration):** 100% ✅ (T-028 ✅, T-029 ✅)
+- **Phase 7.3 (Context Layer):** 100% ✅ (T-030 ✅ — Reddit fetcher, `--reddit`, cache, ICP Context Signal)
+- **Phase 7.4 (Post–T-030 Improvements):** 100% ✅ (I1–I4 + config: relevance doc, Stage 2 fusion, dedup + comment sampling, User Personas, max_posts/max_comments_per_post)
 
 ## Module Inventory
 | Module | Phase | Status |
@@ -583,6 +592,6 @@ Day 4:  T-030 (Reddit — if time permits)
 | `src/ai_client.py` | Phase 7.1 | ✅ Done (T-025) |
 | `src/schemas.py` | Phase 7.1 | ✅ Done (T-025) |
 | `src/venture_architect.py` | Phase 7.1 | ✅ Done (T-026) |
-| `src/fetcher_reddit.py` | Phase 7.3 | ⏳ Deferred |
+| `src/fetcher_reddit.py` | Phase 7.3 | ✅ Done (T-030) |
 | `templates/venture_blueprint.j2` | Phase 7.1 | ✅ Done (T-027) |
 

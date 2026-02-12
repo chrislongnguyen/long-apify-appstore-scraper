@@ -24,6 +24,14 @@ class PainSuccessParadox(BaseModel):
     inference: str = Field(description="Inferred reconciliation or split segment")
 
 
+class UserPersona(BaseModel):
+    """I4: One of 3 non-overlapping user personas with a 5-6 sentence user story."""
+    persona_name: str = Field(description="Short name for the persona")
+    archetype: str = Field(description="Archetype label, e.g. The Reluctant Quitter")
+    user_story: str = Field(description="5-6 sentence journey: User → UDO → UDS/UBS → UDS.UB/UBS.UB")
+    segment: str = Field(description="primary, secondary, or whale_segment")
+
+
 class HolographicICP(BaseModel):
     """Stage 1 output: Holographic Ideal Customer Profile."""
     who: Dict[str, Any] = Field(description="Demographic and psychographic profile")
@@ -33,6 +41,10 @@ class HolographicICP(BaseModel):
     alternatives: List[str] = Field(description="Competitors, workarounds, alternatives mentioned")
     icp_segment: ICPSegment = Field(description="Segment breakdown")
     pain_success_paradox: PainSuccessParadox = Field(description="Pain vs success tension")
+    user_personas: List[UserPersona] = Field(
+        default_factory=list,
+        description="I4: 3 non-overlapping personas with user stories (5-6 sentences each)",
+    )
 
 
 # --- Stage 2: 7-Node System Dynamics Map ---

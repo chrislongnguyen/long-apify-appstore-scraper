@@ -1,6 +1,20 @@
 # Venture Blueprint: {{ app_name }}
 > Generated: {{ generated_at }}{% if niche_name %} | Niche: {{ niche_name }}{% endif %}
 
+## 0. The People
+{% if icp.user_personas and icp.user_personas | length > 0 %}
+{% for p in icp.user_personas %}
+### {{ p.persona_name | default("Persona") }} ({{ p.archetype | default("-") }})
+**Segment:** {{ p.segment | default("primary") }}
+
+{{ p.user_story | default("(No user story generated.)") }}
+{% endfor %}
+{% else %}
+*No user personas generated. Re-run with an LLM that supports the user_personas field.*
+{% endif %}
+
+---
+
 ## 1. The System Map
 
 ### Ultimate Desired Outcome (UDO)

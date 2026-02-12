@@ -1,31 +1,17 @@
 {
-  "niche_name": "ViralApps",
+  "niche_name": "Opal_Screen_Time",
   "niche_category": "Consumer Utility",
+  "venture_architect": {
+    "subreddits": ["nosurf", "digitalminimalism", "screen_time"],
+    "search_queries": ["screen time app", "phone addiction", "Opal app"],
+    "max_posts": 50,
+    "max_comments_per_post": 10
+  },
   "apps": [
     {
-      "name": "Learna_English",
-      "url": "https://apps.apple.com/us/app/speak-learn-english-learna/id6478287397",
-      "price": 39.99
-    },
-    {
-      "name": "Cal_AI_Calorie_Tracker",
-      "url": "https://apps.apple.com/us/app/cal-ai-calorie-tracker/id6480417616",
-      "price": 29.99
-    },
-    {
-      "name": "Lazy Fit",
-      "url": "https://apps.apple.com/us/app/lazyfit-workout-for-beginners/id1669413773",
-      "price": 39.99
-    },
-    {
-      "name": "Coinsnap_Coin_Identifier",
-      "url": "https://apps.apple.com/us/app/coinsnap-coin-identifier/id1634551626",
-      "price": 39.99
-    },
-    {
-      "name": "Rock_Identifier_Stone_ID",
-      "url": "https://apps.apple.com/us/app/rock-identifier-stone-id/id1546796934",
-      "price": 39.99
+      "name": "Opal_Screen_Time",
+      "url": "https://apps.apple.com/us/app/opal-screen-time-control/id1497465230",
+      "price": 99.99
     }
   ],
   "params": {

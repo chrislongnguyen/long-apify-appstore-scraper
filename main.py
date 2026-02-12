@@ -31,6 +31,7 @@ from src.config_validator import (
     validate_settings_config
 )
 from src.fetcher import Fetcher
+from src.fetcher_reddit import RedditFetcher
 from src.analyzer import Analyzer
 from src.reporter import Reporter
 from src.intelligence import ForensicAnalyzer
@@ -58,6 +59,11 @@ def main():
         "--venture-architect",
         action="store_true",
         help="Run Venture Architect 3-stage LLM pipeline (Phase 7) to generate venture blueprint",
+    )
+    parser.add_argument(
+        "--reddit",
+        action="store_true",
+        help="Fetch Reddit context for Venture Architect (requires --venture-architect and venture_architect block in targets.json)",
     )
     parser.add_argument(
         "--apify-token",
@@ -113,6 +119,32 @@ def main():
 
     # Phase 7: Venture Architect (lazy init when --venture-architect)
     venture_architect = None
+
+    # T-030: Reddit context (pre-loop). Only when --reddit + --venture-architect and targets have venture_architect block.
+    reddit_data = []
+    if args.reddit and args.venture_architect:
+        va_block = targets_config.get("venture_architect") or {}
+        subreddits = va_block.get("subreddits") or []
+        search_queries = va_block.get("search_queries") or []
+        max_posts = va_block.get("max_posts", 50)
+        max_comments_per_post = va_block.get("max_comments_per_post", 10)
+        if subreddits or search_queries:
+            try:
+                reddit_fetcher = RedditFetcher(apify_token=args.apify_token, settings=settings_config)
+                reddit_data = reddit_fetcher.fetch_niche_context(
+                    subreddits=subreddits,
+                    search_queries=search_queries,
+                    max_posts=max_posts,
+                    max_comments_per_post=max_comments_per_post,
+                )
+                cache_path = data_dir / "reddit_context.json"
+                reddit_fetcher.save_context(reddit_data, cache_path)
+                print(f"✓ Fetched Reddit context: {len(reddit_data)} items → {cache_path}")
+            except Exception as e:
+                print(f"✗ Reddit fetch failed (continuing without): {e}")
+                reddit_data = []
+        else:
+            print("ℹ No subreddits/search_queries in venture_architect; skipping Reddit fetch")
     
     # Get apps to process (smoke test: only first app)
     apps_to_process = targets_config["apps"]
@@ -234,7 +266,7 @@ def main():
                             raw_reviews=reviews,
                             filtered_reviews=filtered_reviews,
                             analysis=analysis,
-                            reddit_data=[],
+                            reddit_data=reddit_data,
                             output_dir=reports_dir,
                             niche_name=niche_name,
                         )
