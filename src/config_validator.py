@@ -131,7 +131,17 @@ def validate_settings_config(config: Dict[str, Any]) -> bool:
     
     if not isinstance(processing["days_back_default"], int):
         raise ValueError("'processing.days_back_default' must be an integer")
-    
+
+    # Optional: validate venture_architect (Phase 7) if present
+    if "venture_architect" in config:
+        va = config["venture_architect"]
+        if not isinstance(va, dict):
+            raise ValueError("'venture_architect' must be a dictionary")
+        if "llm_model" in va and not isinstance(va["llm_model"], str):
+            raise ValueError("'venture_architect.llm_model' must be a string")
+        if "llm_provider" in va and not isinstance(va["llm_provider"], str):
+            raise ValueError("'venture_architect.llm_provider' must be a string")
+
     return True
 
 

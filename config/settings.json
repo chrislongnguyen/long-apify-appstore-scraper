@@ -7,15 +7,19 @@
     "country": "us"
   },
   "weights": {
-    "slope_impact": 20.0,
+    "slope_impact": 20,
     "volume_impact": 0.5,
-    "critical_keyword": 10.0,
-    "scam_keyword": 8.0,
-    "performance_keyword": 5.0,
-    "ux_keyword": 2.0
+    "critical_keyword": 10,
+    "scam_keyword": 8,
+    "performance_keyword": 5,
+    "ux_keyword": 2
   },
   "processing": {
     "enable_smoke_test": false,
     "days_back_default": 90
+  },
+  "venture_architect": {
+    "llm_provider": "gemini",
+    "llm_model": "gemini-2.5-flash"
   }
 }

@@ -1,0 +1,40 @@
+To: Founder / Strategy Lead From: Chief Data Scientist Subject: The Statistical Rationale for the "10% Scam Floor"
+
+You asked why I hard-coded a 60/100 Risk Floor when >10% of signals are "Economic" (Scam/Theft), ignoring the trend.
+
+Here is the mathematical and behavioral reality behind that decision:
+
+1. The "Poison" Distribution (Signal Asymmetry)
+In Sentiment Analysis, not all negative keywords are created equal.
+
+Linear Signals (Functional/Experience): "Buggy", "Slow", "Ugly". These follow a linear damage curve. If 10% of users say the app is "Ugly", you lose ~10% of retention. It hurts, but it’s survivable.
+
+Exponential Signals (Economic): "Scam", "Stole", "Fraud". These are poison. If 10% of users shout "Scam", you don't lose 10% of users—you lose trust entirely.
+
+The 10% Threshold: In NLP (Natural Language Processing) on app reviews, the word "Scam" is an extreme outlier. Users generally default to "Does not work" or "Bad app." To explicitly use "Scam" or "Thief" requires a level of emotional activation that indicates a catastrophic failure. A 0.1 density (1 in 10 reviews) is not "noise"; it is a structural dominance. It implies the primary user experience is now theft, not utility.
+
+2. Correcting the "Slope Fallacy"
+The Learna_English case revealed a fatal flaw in our previous linear model: The Slope Fallacy.
+
+The Data: The app had a slope of -3.0.
+
+The Interpretation: The "Scam" problem was getting better (fewer scam reports this week than last week).
+
+The Flaw: Our formula treated "Less Scammy" as "Safe."
+
+Analogy: If a restaurant gives food poisoning to 100 people on Monday and only 50 people on Tuesday, the trend is "Improving" (Slope is negative). But you still cannot eat there.
+
+The Fix: The Floor enforces the reality that severity overrides velocity. Until the poison is gone (density drops below 0.1), the rate of improvement is irrelevant to the current safety of the user.
+
+3. The "High Risk" Calibration (60/100)
+Why lock to 60?
+
+0-50 (Safe/Moderate): Usable apps, perhaps with bugs.
+
+51-75 (High Risk): Apps where the default outcome is loss (time or money).
+
+76-100 (Critical): Apps that are actively collapsing.
+
+By locking at 60, we place the app firmly in the "Do Not Touch" zone. It forces the system to acknowledge that an app with a 10% Scam rate is unsafe by definition, regardless of whether it also has a nice UI or a "clean" version history.
+
+Conclusion: This logic moves our system from a "Trend Detector" (which can be gamed or misled by declining volume) to a "Safety Engine." We are no longer asking "Is it getting better?"; we are asking "Is it toxic?" If >10% say yes, we flag it.

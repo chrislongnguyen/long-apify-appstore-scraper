@@ -6,6 +6,7 @@ from pathlib import Path
 from datetime import datetime
 
 import pandas as pd
+from jinja2 import Environment, FileSystemLoader
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -390,6 +391,57 @@ class Reporter:
         
         logger.info(f"Saved niche report to {output_path}")
         return output_path
+
+    def render_venture_blueprint(
+        self,
+        app_name: str,
+        icp: Dict[str, Any],
+        system_map: Dict[str, Any],
+        eps: Dict[str, Any],
+        output_dir: Path = None,
+        niche_name: str = "",
+    ) -> Path:
+        """
+        T-027: Render Venture Blueprint markdown from Jinja2 template.
+
+        Args:
+            app_name: Target app name
+            icp: Stage 1 output (Holographic ICP)
+            system_map: Stage 2 output (System Dynamics Map)
+            eps: Stage 3 output (EPS Prescription)
+            output_dir: Optional output dir override
+            niche_name: Optional niche name for header context
+
+        Returns:
+            Path to generated venture blueprint markdown
+        """
+        out_dir = output_dir or self.output_dir
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        project_root = Path(__file__).resolve().parent.parent
+        templates_dir = project_root / "templates"
+        env = Environment(
+            loader=FileSystemLoader(str(templates_dir)),
+            autoescape=False,
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
+        template = env.get_template("venture_blueprint.j2")
+
+        rendered = template.render(
+            app_name=app_name,
+            generated_at=datetime.now().strftime("%Y-%m-%d"),
+            niche_name=niche_name,
+            icp=icp or {},
+            system_map=system_map or {},
+            eps=eps or {},
+        )
+
+        safe_name = app_name.replace(" ", "_").lower()
+        output_path = out_dir / f"venture_blueprint_{safe_name}.md"
+        output_path.write_text(rendered, encoding="utf-8")
+        logger.info(f"Saved venture blueprint to {output_path}")
+        return output_path
     
     def aggregate_leaderboard(self, data_dir: Path = None) -> Path:
         """
@@ -539,7 +591,7 @@ class Reporter:
             "",
             "## Interpretation",
             "",
-            "### MECE Risk Scoring Methodology",
+            "### MECE Risk Scoring Methodology (T-031 Severity-First)",
             "",
             "**MECE Pillars:** Mutually Exclusive, Collectively Exhaustive risk categories",
             "",
@@ -555,17 +607,13 @@ class Reporter:
             "   - Categories: `usability`, `competitor_mention`, `generic_pain`",
             "   - Examples: Confusing UI, difficult navigation, preference for alternatives",
             "",
-            "### Risk Score Calculation",
+            "### Risk Score — Layman's Terms",
             "",
-            "**Formula:** `BaseScore × (1 + max(0, VolatilitySlope))`",
+            "We weigh **Scam and subscription** (Economic) signals **2.5× harder** than UI glitches.",
+            "Economic pain (deceptive pricing, hidden fees) is treated as higher severity than usability complaints.",
             "",
-            "- **Base Score:** `(FunctionalDensity + EconomicDensity + ExperienceDensity) × 10.0`",
-            "  - Density = Sum of keyword weights / Total reviews analyzed",
-            "  - Scaler (10.0) standardizes so ~1 major pain point per user = 100",
-            "",
-            "- **Volatility Boost:** Amplifies score if trend is worsening (positive slope)",
-            "  - If slope > 0: Score increases proportionally",
-            "  - If slope ≤ 0: Base score remains unchanged",
+            "**Critical Floor:** If >10% of signals suggest Scam/Economic risk, the score locks to **High Risk (60+)** regardless of trend.",
+            "An \"improving\" trend (negative slope) will dampen the score, but it **cannot erase** serious red flags.",
             "",
             "### Column Definitions",
             "",

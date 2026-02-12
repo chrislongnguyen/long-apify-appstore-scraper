@@ -9,6 +9,8 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
+from src.intelligence import ForensicAnalyzer
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,12 +29,8 @@ DEFAULT_FERMI_MULTIPLIER = 100
 DEFAULT_PRICE_USD = 9.99
 
 # T-023: Whale detector (Design §4.5)
-WHALE_MULTIPLIER = 3.0
-WHALE_DOMAIN_VOCAB = {
-    "latency", "vector", "workflow", "pipeline", "integration", "api",
-    "batch", "export", "sync", "credits", "quota", "render", "4k",
-    "resolution", "frame rate",
-}
+WHALE_MULTIPLIER = ForensicAnalyzer.WHALE_MULTIPLIER
+WHALE_DOMAIN_VOCAB = ForensicAnalyzer.WHALE_DOMAIN_VOCAB
 
 
 class Analyzer:
@@ -281,15 +279,16 @@ class Analyzer:
         
         return has_pain_keyword
     
-    def calculate_keyword_density(self, df: pd.DataFrame) -> Dict[str, int]:
+    def calculate_keyword_density(self, df: pd.DataFrame) -> Dict[str, float]:
         """
-        Calculate keyword density per category using vectorized pandas operations.
+        Calculate whale-weighted keyword density per category using vectorized pandas operations.
         
         Args:
             df: Reviews DataFrame with 'text' column (or 'title' + 'text')
             
         Returns:
-            Dictionary mapping category names to counts
+            Dictionary mapping category names to weighted counts
+            (1.0 per normal review, WHALE_MULTIPLIER per whale review)
         """
         if df.empty or 'text' not in df.columns:
             logger.warning("DataFrame missing 'text' column for keyword density")
@@ -305,7 +304,13 @@ class Analyzer:
         else:
             combined_text = df['text'].fillna('').str.lower()
         
-        category_counts = {}
+        category_counts: Dict[str, float] = {}
+        is_whale = combined_text.apply(self._is_whale_review)
+        review_weights = pd.Series(
+            np.where(is_whale, WHALE_MULTIPLIER, 1.0),
+            index=combined_text.index,
+            dtype=float,
+        )
         
         # Vectorized keyword matching for each category
         for category_name, category_data in self.pain_keywords['categories'].items():
@@ -318,11 +323,9 @@ class Analyzer:
             escaped_keywords = [re.escape(kw.lower()) for kw in keywords]
             pattern = '|'.join(escaped_keywords)
             
-            # Vectorized matching: count occurrences of any keyword in each review
-            matches = combined_text.str.count(pattern, flags=re.IGNORECASE)
-            
-            # Count reviews that contain at least one keyword from this category
-            category_count = int((matches > 0).sum())
+            # Vectorized matching: count whale-weighted reviews containing any keyword in category
+            has_keyword = combined_text.str.contains(pattern, case=False, na=False, regex=True)
+            category_count = float(review_weights[has_keyword].sum())
             category_counts[category_name] = category_count
             
             if category_count > 0:
@@ -346,9 +349,9 @@ class Analyzer:
             return True
         return any(vocab in text_lower for vocab in WHALE_DOMAIN_VOCAB)
 
-    def _get_churn_review_count(self, df: pd.DataFrame) -> int:
+    def _get_churn_review_count(self, df: pd.DataFrame) -> float:
         """
-        T-020: Count reviews with Economic or Functional pain pillars (churn signals).
+        T-020/T-031: Count whale-weighted churn signals (Economic or Functional pain pillars).
         
         Used for Fermi revenue leakage estimation.
         
@@ -356,17 +359,17 @@ class Analyzer:
             df: Reviews DataFrame with text column
             
         Returns:
-            Count of unique reviews matching any Economic or Functional category
+            Whale-weighted count of reviews matching any Economic or Functional category
         """
         economic_categories = {"scam_financial", "subscription", "broken_promise", "ads"}
         functional_categories = {"critical", "performance", "privacy", "ai_quality"}
         churn_categories = economic_categories | functional_categories
         
         if df.empty or not self.pain_keywords or "categories" not in self.pain_keywords:
-            return 0
+            return 0.0
         
         if "text" not in df.columns:
-            return 0
+            return 0.0
         
         if "title" in df.columns:
             combined_text = (df["title"].fillna("") + " " + df["text"].fillna("")).str.lower()
@@ -381,26 +384,28 @@ class Analyzer:
                 all_keywords.extend([kw.lower() for kw in keywords])
         
         if not all_keywords:
-            return 0
+            return 0.0
         
         escaped = [re.escape(kw) for kw in all_keywords]
         pattern = "|".join(escaped)
         has_churn = combined_text.str.contains(pattern, case=False, na=False, regex=True)
-        return int(has_churn.sum())
+        is_whale = combined_text.apply(self._is_whale_review)
+        churn_weights = np.where(has_churn, np.where(is_whale, WHALE_MULTIPLIER, 1.0), 0.0)
+        return float(np.sum(churn_weights))
     
     def estimate_revenue_leakage(
         self,
-        churn_reviews: int,
+        churn_reviews: float,
         price: float = DEFAULT_PRICE_USD,
         niche_category: Optional[str] = None,
     ) -> float:
         """
         T-020: Fermi-style estimation of monthly revenue leakage.
         
-        Formula: Leakage = (Churn_Reviews * Multiplier) * Price
+        Formula: Leakage = (Weighted_Churn_Reviews * Multiplier) * Price
         
         Args:
-            churn_reviews: Count of reviews with Economic or Functional pain pillars
+            churn_reviews: Whale-weighted count of churn-signal reviews
             price: App price or IAP average (default $9.99)
             niche_category: Category from targets.json: b2b, utility, consumer, game, etc.
             
@@ -439,7 +444,7 @@ class Analyzer:
     
     def _calculate_pillar_densities(
         self,
-        category_counts: Dict[str, int],
+        category_counts: Dict[str, float],
         total_reviews: int
     ) -> Dict[str, float]:
         """
@@ -485,50 +490,61 @@ class Analyzer:
         self,
         slope: float,
         volatility_score: float,
-        category_counts: Dict[str, int],
+        category_counts: Dict[str, float],
         total_reviews: int = 1
     ) -> tuple[float, Dict[str, float], str]:
         """
-        T-012: Calculate MECE Risk Score using Pillar + Boost formula.
-        
-        Formula:
-        - BaseScore = (FunctionalDensity + EconomicDensity + ExperienceDensity) × 10.0
-        - FinalRisk = min(100.0, BaseScore × (1 + max(0, VolatilitySlope)))
-        
+        T-031: Calculate MECE Risk Score using Severity-First model.
+
+        Fixes false negative where negative slope (improvement) hides critical severity (Scams/Crashes).
+        Formula: Risk = min(100.0, max(CalculatedRisk, CriticalFloor))
+
         Args:
             slope: Trend slope value (volatility slope)
-            volatility_score: Volume-based volatility score (unused in MECE formula)
+            volatility_score: Volume-based volatility score (unused)
             category_counts: Dictionary of category counts
             total_reviews: Total number of reviews analyzed
-            
+
         Returns:
             Tuple of (risk_score, pillar_densities, primary_pillar)
-            - risk_score: Final risk score (0-100)
-            - pillar_densities: Dictionary mapping pillar names to densities
-            - primary_pillar: Name of pillar with highest density
         """
         # T-012: Calculate pillar densities
         pillar_densities = self._calculate_pillar_densities(category_counts, total_reviews)
-        
-        # Step C: Calculate Base Risk Score
-        # BaseScore = (FunctionalDensity + EconomicDensity + ExperienceDensity) × 10.0
-        total_density = sum(pillar_densities.values())
-        base_score = total_density * 10.0
-        
-        # Step D: Apply Volatility Boost
-        # FinalRisk = min(100.0, BaseScore × (1 + max(0, VolatilitySlope)))
-        # Logic: If slope is positive (getting worse), amplify the score. If negative/flat, keep Base Score.
-        volatility_boost = 1.0 + max(0.0, slope)  # Only boost if slope is positive
-        final_risk = min(100.0, base_score * volatility_boost)
-        
-        # Identify primary pillar (highest density)
-        primary_pillar = max(pillar_densities.items(), key=lambda x: x[1])[0] if pillar_densities else "None"
-        
-        logger.info(
-            f"MECE Risk Score: Base={base_score:.2f}, Boost={volatility_boost:.3f}, "
-            f"Final={final_risk:.2f}, Primary Pillar={primary_pillar}"
+        func_density = pillar_densities.get("Functional", 0.0)
+        econ_density = pillar_densities.get("Economic", 0.0)
+        exp_density = pillar_densities.get("Experience", 0.0)
+
+        # T-031 BaseScore — Severity-weighted: Economic 250, Functional 200, Experience 150
+        base_score = (
+            func_density * 200.0
+            + econ_density * 250.0  # Highest severity (Scam/Subscription)
+            + exp_density * 150.0
         )
-        
+
+        # T-031 SlopeMultiplier — Dampen improvement; never let negative slope erase risk
+        if slope > 0:
+            slope_multiplier = min(2.0, 1.0 + slope)
+        else:
+            slope_multiplier = max(0.5, 1.0 + (slope * 0.1))
+
+        calculated_risk = base_score * slope_multiplier
+
+        # T-031 CriticalFloor — Override: scam/crash signals lock to High Risk
+        if econ_density > 0.1:
+            critical_floor = 60.0  # High Risk
+        elif func_density > 0.15:
+            critical_floor = 50.0  # Moderate Risk
+        else:
+            critical_floor = 0.0
+
+        final_risk = min(100.0, max(calculated_risk, critical_floor))
+        primary_pillar = max(pillar_densities.items(), key=lambda x: x[1])[0] if pillar_densities else "None"
+
+        logger.info(
+            f"MECE Risk Score (T-031 Severity-First): Base={base_score:.2f}, SlopeMult={slope_multiplier:.3f}, "
+            f"Calc={calculated_risk:.2f}, Floor={critical_floor:.0f}, Final={final_risk:.2f}, Primary={primary_pillar}"
+        )
+
         return round(final_risk, 2), pillar_densities, primary_pillar
     
     def analyze(

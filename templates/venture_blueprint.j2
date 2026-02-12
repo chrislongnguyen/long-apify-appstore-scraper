@@ -1,0 +1,81 @@
+# Venture Blueprint: {{ app_name }}
+> Generated: {{ generated_at }}{% if niche_name %} | Niche: {{ niche_name }}{% endif %}
+
+## 1. The System Map
+
+### Ultimate Desired Outcome (UDO)
+> "{{ system_map.udo.statement if system_map.udo else icp.why_udo }}"
+
+### Driving Forces (→ UDO)
+| Node | Label | Layer | Evidence |
+| :--- | :--- | :--- | :--- |
+| UDS | {{ system_map.uds.label if system_map.uds else "-" }} | {{ system_map.uds.layer if system_map.uds else "-" }} | "{{ system_map.uds.evidence[0] if system_map.uds and system_map.uds.evidence else "-" }}" |
+| UDS.UD | {{ system_map.uds_ud.label if system_map.uds_ud else "-" }} | {{ system_map.uds_ud.layer if system_map.uds_ud else "-" }} | "{{ system_map.uds_ud.evidence[0] if system_map.uds_ud and system_map.uds_ud.evidence else "-" }}" |
+| UDS.UB | {{ system_map.uds_ub.label if system_map.uds_ub else "-" }} | {{ system_map.uds_ub.layer if system_map.uds_ub else "-" }} | "{{ system_map.uds_ub.evidence[0] if system_map.uds_ub and system_map.uds_ub.evidence else "-" }}" |
+
+### Blocking Forces (← UDO)
+| Node | Label | Layer | Evidence |
+| :--- | :--- | :--- | :--- |
+| UBS | {{ system_map.ubs.label if system_map.ubs else "-" }} | {{ system_map.ubs.layer if system_map.ubs else "-" }} | "{{ system_map.ubs.evidence[0] if system_map.ubs and system_map.ubs.evidence else "-" }}" |
+| UBS.UD | {{ system_map.ubs_ud.label if system_map.ubs_ud else "-" }} | {{ system_map.ubs_ud.layer if system_map.ubs_ud else "-" }} | "{{ system_map.ubs_ud.evidence[0] if system_map.ubs_ud and system_map.ubs_ud.evidence else "-" }}" |
+| UBS.UB | {{ system_map.ubs_ub.label if system_map.ubs_ub else "-" }} | {{ system_map.ubs_ub.layer if system_map.ubs_ub else "-" }} | "{{ system_map.ubs_ub.evidence[0] if system_map.ubs_ub and system_map.ubs_ub.evidence else "-" }}" |
+
+### Incumbent Failure
+{{ system_map.incumbent_failure if system_map.incumbent_failure else "-" }}
+
+---
+
+## 2. The Strategic Inversion
+
+| Incumbent Method | Root Cause | New Principle |
+| :--- | :--- | :--- |
+{% if eps.strategic_inversion_table %}
+{% for row in eps.strategic_inversion_table %}
+| {{ row.incumbent_method if row.incumbent_method else "-" }} | {{ row.root_cause_node if row.root_cause_node else "-" }} | {{ row.new_principle if row.new_principle else "-" }} |
+{% endfor %}
+{% else %}
+| - | - | - |
+{% endif %}
+
+---
+
+## 3. The EPS Prescription
+
+### Environment (Where)
+**{{ eps.environment.form_factor if eps.environment and eps.environment.form_factor else "N/A" }}**
+{% if eps.environment and eps.environment.rationale %}> {{ eps.environment.rationale }}{% endif %}
+{% if eps.environment and eps.environment.anti_pattern %}> ❌ Anti-pattern: {{ eps.environment.anti_pattern }}{% endif %}
+
+### Principles (Why)
+{% if eps.principles %}
+{% for p in eps.principles %}
+- **{{ p.id if p.id else "-" }}: {{ p.name if p.name else "-" }}** — {{ p.strategy if p.strategy else "-" }}
+  > {{ p.rationale if p.rationale else "-" }}
+{% endfor %}
+{% else %}
+- No principles generated.
+{% endif %}
+
+### Tools (What)
+- 🎁 **Desirable Wrapper:** {% if eps.tools and eps.tools.desirable_wrapper is mapping %}{{ eps.tools.desirable_wrapper.name if eps.tools.desirable_wrapper.name else "-" }} — {{ eps.tools.desirable_wrapper.hook if eps.tools.desirable_wrapper.hook else "-" }}{% elif eps.tools and eps.tools.desirable_wrapper is sequence and eps.tools.desirable_wrapper is not string %}{{ eps.tools.desirable_wrapper | join(", ") }}{% else %}{{ eps.tools.desirable_wrapper if eps.tools and eps.tools.desirable_wrapper else "-" }}{% endif %}
+- ⚙️ **Effective Core:** {% if eps.tools and eps.tools.effective_core is mapping %}{{ eps.tools.effective_core.name if eps.tools.effective_core.name else "-" }} — {{ eps.tools.effective_core.mechanic if eps.tools.effective_core.mechanic else "-" }}{% elif eps.tools and eps.tools.effective_core is sequence and eps.tools.effective_core is not string %}{{ eps.tools.effective_core | join(", ") }}{% else %}{{ eps.tools.effective_core if eps.tools and eps.tools.effective_core else "-" }}{% endif %}
+
+### SOP (How)
+{% if eps.sop %}
+{% for s in eps.sop %}
+{% if s.step is number %}
+{{ s.step }}.
+{% else %}
+{{ loop.index }}.
+{% endif %}
+[{{ s.actor if s.actor else "System" }}] {{ s.action if s.action else s.step }}
+{% endfor %}
+{% else %}
+No SOP generated.
+{% endif %}
+
+---
+
+## 4. The Trojan Horse
+- **Level 1 (What they buy):** {% if eps.trojan_horse %}{{ eps.trojan_horse.level_1_desirable if eps.trojan_horse.level_1_desirable else eps.trojan_horse.desirable_wrapper }}{% else %}-{% endif %}
+- **Level 5 (What solves it):** {% if eps.trojan_horse %}{{ eps.trojan_horse.level_5_effective if eps.trojan_horse.level_5_effective else eps.trojan_horse.effective_core }}{% else %}-{% endif %}

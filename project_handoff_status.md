@@ -1,25 +1,27 @@
 # PROJECT HANDOFF STATUS
 
-**Generated:** 2026-02-11  
-**Session Focus:** Phase 6 Complete; Phase 7 (Venture Architect) Designed & In Execution Planning
+**Generated:** 2026-02-12  
+**Session Focus:** Phase 7.1 Complete; Venture Architect Live; Phase 7.2 Orchestration Done
 
 ---
 
 ## 1. ACTIVE PHASE & CURRENT TASK ID
 
 **Current Phase:** Phase 7 — The Venture Architect 🚧  
-**Current Sprint:** Phase 7.1 (Core Intelligence) + 7.2 (Orchestration)  
-**Overall Progress:** Phases 1-6 Complete (32/32 tasks); Phase 7 at 0% (6 tasks planned)  
-**Next Task:** T-025 (AI Client & Pydantic Schemas) — hard blocker for T-026  
-**Status:** ✅ Phases 1-6 Complete → 🚧 Phase 7 Ready for Execution
+**Current Sprint:** Phase 7.2 (Orchestration) Complete; Phase 7.3 (Reddit) Pending  
+**Overall Progress:** Phases 1-6 Complete (32/32 tasks); Phase 7.1 100% (3/3); Phase 7.2 100% (2/2); Phase 7.3 0% (1 task)  
+**Next Task:** T-030 (Reddit Scraper Integration) — SHOULD HAVE, not blocking  
+**Status:** ✅ Phases 1-6 Complete → ✅ Phase 7.1–7.2 Complete → ⏳ Phase 7.3 Deferred
 
-**Recent Completions (2026-02-11):**
-- ✅ Phase 6: T-020 Fermi Estimator, T-021 Slope Delta, T-022 Named Spikes, T-023 Whale Detector, T-024 Reporter Integration
-- ✅ Financial Impact in reports: Monthly Revenue Leakage, Trend Acceleration, Momentum labels
-- ✅ Leaderboard: sorted by Revenue Leakage; Momentum column (Accelerating / Decelerating / Stabilizing / Improving)
-- ✅ python-dotenv: `.env` loading for `APIFY_API_KEY`, `GEMINI_API_KEY`
-- ✅ Phase 7 Design: Full architecture in `docs/ai/design/` (3-stage LLM pipeline, 7-Node System Dynamics, EPS Prescription)
-- ✅ Phase 7 Planning: 3 sub-phases (7.1 Core, 7.2 Orchestration, 7.3 Reddit) with T-025 to T-030
+**Recent Completions (2026-02-12):**
+- ✅ **T-031:** Risk Score Recalibration — Severity-First model; Learna_English 2.74 → 60.0; CriticalFloor for Economic>10%
+- ✅ **T-025:** AI Client (`src/ai_client.py`) + Pydantic schemas (`src/schemas.py`) — Gemini wrapper, structured JSON output
+- ✅ **T-026:** Venture Architect (`src/venture_architect.py`) — 3-stage pipeline (ICP → SysMap → EPS), repair logic for LLM output
+- ✅ **T-027:** Blueprint Reporter — Jinja2 template `templates/venture_blueprint.j2`, `Reporter.render_venture_blueprint()`
+- ✅ **T-028:** Success Signal Integration — `--venture-architect` CLI flag, raw_reviews + filtered_reviews wired in `main.py`
+- ✅ **T-029:** Context Mocking — Architect runs with `reddit_data=[]`; graceful degradation, no Reddit required
+- ✅ **Config:** `config/settings.json` `venture_architect.llm_model` / `llm_provider` — switch model (e.g. `gemini-2.5-flash`) without code change
+- ✅ **Standardized JSON:** System Map payload uses `app_name`, `generated_at`, `system_dynamics`, `eps_prescription`
 
 ---
 
@@ -62,12 +64,13 @@
 7. **Feature/Fail Matrix:** Niche heatmap with MECE pillars (Functional, Economic, Experience)
 8. **White Space Analysis (T-017):** "Gap Found" when Functional & Economic < 30
 
-### Predictive Analytics (Phase 6 — T-020 to T-024)
+### Predictive Analytics (Phase 6 — T-020 to T-024, T-031)
 9. **Fermi Estimator:** Revenue Leakage = (Churn_Reviews × Multiplier) × Avg_Price (dynamic by niche_category)
 10. **Slope Delta:** Trend acceleration (Slope_T1 vs Slope_T2); "Accelerating" / "Decelerating" / "Stabilizing"
 11. **Named Spikes:** Link anomaly weeks to app version (e.g., "The Version 4.2 Crash")
 12. **Whale Detector:** 3× weight for reviews > 40 words or domain vocabulary
 13. **Momentum Labels:** Applied to leaderboard and reports
+14. **T-031 Severity-First Risk Score:** Economic×250, Functional×200, Experience×150; CriticalFloor (Economic>10%→60); slope dampens improvement but never erases red flags
 
 ### Venture Architect (Phase 7 — T-025 to T-030)
 14. **Holographic ICP:** Triangulate Pain (1-2★), Success (5★ whales), Context (Reddit)
@@ -91,7 +94,7 @@
    - Date filtering (90 days)
    - Volatility slope calculation (`np.polyfit`)
    - Keyword density (vectorized regex)
-   - **MECE Risk Scoring** (T-012): Pillar + Boost formula
+   - **MECE Risk Scoring** (T-012, T-031): Severity-First formula — Economic 2.5×, CriticalFloor
 3. **ForensicAnalyzer** (`src/intelligence.py`): T-008 Forensic Intelligence
    - `detect_event_timeline()` — Weekly Pain Density, anomaly detection
    - `extract_semantic_clusters()` — N-Grams (sklearn CountVectorizer / Counter fallback)
@@ -102,12 +105,13 @@
    - Individual Forensic Reports (T-008) — **Phase 6:** Financial Impact section (Leakage, Trend)
    - Niche Battlefield Report (Matrix, Migration Flow, White Space)
    - **Niche subdirectories** (T-016): `data/{niche_name}/`, `reports/{niche_name}/`
+   - **Phase 7:** `render_venture_blueprint()` — Jinja2 template for `venture_blueprint_{app}.md`
 5. **Phase 6 (Predictive):** SlopeDeltaCalculator, FermiEstimator, Named Spikes, Whale Detector — all in Analyzer/Forensic
-6. **Phase 7 (Venture Architect — In Design):**
-   - `src/ai_client.py` — Gemini/OpenAI wrapper, Pydantic schemas
+6. **Phase 7 (Venture Architect — Live):**
+   - `src/ai_client.py` — Gemini wrapper, Pydantic schemas, model from `settings.json`
    - `src/venture_architect.py` — 3-stage pipeline: ICP → SysMap → EPS
-   - `src/fetcher_reddit.py` — Context Signal (Reddit threads)
    - `templates/venture_blueprint.j2` — Jinja2 Strategy Doc
+   - `src/fetcher_reddit.py` — Deferred (T-030); Architect runs with `reddit_data=[]`
 
 ### Effectiveness Attributes
 - **Deterministic:** Math-based scoring (no LLM)
@@ -126,7 +130,7 @@
 
 **Build Cost:**
 - Phases 1-6: 100% complete (32 tasks)
-- Phase 7: Designed; execution in progress (6 tasks)
+- Phase 7.1–7.2: 100% complete (5 tasks); Phase 7.3 deferred (1 task)
 
 ---
 
@@ -141,11 +145,11 @@
 - **Phase 4 (Platinum):** 100% (4/4 tasks) ✅
 - **Phase 5 (Diamond):** 100% (4/4 tasks) ✅
 - **Phase 6 (Predictive):** 100% (5/5 tasks) ✅
-- **Phase 7.1 (Core Intelligence):** 0% — T-025, T-026, T-027 🚧
-- **Phase 7.2 (Orchestration):** 0% — T-028, T-029 🚧
-- **Phase 7.3 (Context Layer):** 0% — T-030 ⏳ (SHOULD HAVE)
+- **Phase 7.1 (Core Intelligence):** 100% — T-025, T-026, T-027 ✅
+- **Phase 7.2 (Orchestration):** 100% — T-028, T-029 ✅
+- **Phase 7.3 (Context Layer):** 0% — T-030 ⏳ (SHOULD HAVE, deferred)
 
-**Overall Progress:** 32/32 tasks complete (Phases 1-6); 6 tasks planned (Phase 7)
+**Overall Progress:** 37/38 tasks complete (Phases 1–7.2); 1 task deferred (T-030 Reddit)
 
 ### Niches Analyzed
 | Niche | Apps | Output Location |
@@ -160,14 +164,11 @@
 - **Config:** `targets.json` → `niche_name`
 - **Data:** `data/{niche_name}/*_reviews.json`, `*_analysis.json`, `market_leaderboard.md`
 - **Reports:** `reports/{niche_name}/report_*.md`, `*_intelligence.json`, `niche_matrix.json`
-- **Phase 7 (future):** `venture_blueprint_{app}.md`, `{app}_system_map.json`
+- **Phase 7 (live):** `reports/{niche_name}/venture_blueprint_{app}.md`, `{app}_system_map.json`
 
-### Active Phase 7 Tasks
-- **T-025:** AI Client & Pydantic Schemas — CRITICAL PATH (start here)
-- **T-026:** Venture Architect Core (3-stage pipeline)
-- **T-027:** Blueprint Reporter & Jinja2 template
-- **T-028:** Success Signal / main.py `--venture-architect` flag
-- **T-029:** Context Mocking (run without Reddit)
+### Phase 7 Status
+- **T-025 to T-029:** ✅ Done — AI Client, Venture Architect, Blueprint Template, CLI flag, Graceful Degradation
+- **T-030:** ⏳ Deferred — Reddit Scraper (SHOULD HAVE; Architect runs without it)
 
 ---
 
@@ -178,66 +179,83 @@
    - T-008: Forensic pipeline (ForensicAnalyzer, intelligence.json, individual + niche reports)
    - T-016: Niche subdirectories (`data/{niche_name}/`, `reports/{niche_name}/`)
    - **Phase 6:** Passes analysis + forensic to Reporter for Financial Impact
-   - **Phase 7 (planned):** `--venture-architect` flag, VentureArchitect invocation
+   - **Phase 7:** `--venture-architect` flag; lazy init AIClient + VentureArchitect; `_json_default` for numpy/pandas JSON serialization; passes `raw_reviews`, `niche_name`, `reporter`
 
-2. **`src/intelligence.py`**
+2. **`src/ai_client.py`** *(NEW)*
+   - Gemini/OpenAI wrapper; `generate_structured()` with tenacity retry; JSON parse + Pydantic validation
+   - Model configurable via `settings.json` → `venture_architect.llm_model`
+
+3. **`src/schemas.py`** *(NEW)*
+   - Pydantic models: `HolographicICP`, `SystemDynamicsMap`, `EPSPrescription`, `ICPSegment`, etc.
+
+4. **`src/venture_architect.py`** *(NEW)*
+   - 3-stage pipeline: `construct_holographic_icp` → `map_system_dynamics` → `generate_eps_prescription`
+   - Repair logic for LLM output; `generate_blueprint()` saves JSON + invokes Reporter for blueprint MD
+
+5. **`src/reporter.py`**
+   - **Phase 7:** `render_venture_blueprint()` — Jinja2 template for venture_blueprint_{app}.md
+
+6. **`src/intelligence.py`**
    - ForensicAnalyzer: detect_event_timeline, extract_semantic_clusters, map_competitor_migration, generate_matrix
    - T-018: Strict migration regex
    - **T-022:** name_spike() — link anomalies to version metadata
    - **T-023:** Whale multiplier in Pain Density
 
-3. **`src/analyzer.py`**
+7. **`src/analyzer.py`**
    - **T-020:** FermiEstimator (Revenue Leakage)
    - **T-021:** SlopeDeltaCalculator (Trend acceleration)
    - **T-023:** Whale Detector in evidence ranking
 
-4. **`src/reporter.py`**
-   - generate_report() — **Phase 6:** Financial Impact (Leakage, Trend Acceleration)
-   - generate_niche_report() — Matrix, Migration Flow, White Space
-   - **Phase 6:** Leaderboard sorted by monthly_leakage_usd; Momentum column
-
-5. **`src/fetcher.py`**
+8. **`src/fetcher.py`**
    - T-014: Multi-Region Support (agents/appstore-reviews)
 
-6. **`src/config_validator.py`**
+9. **`src/config_validator.py`**
    - T-016: Optional `niche_name` validation
+   - **Phase 7:** Optional `venture_architect` block validation (llm_model, llm_provider)
 
 ### Configuration Files
-7. **`config/targets.json`**
-   - `niche_name`, `niche_category` (Fermi multiplier)
-   - **Phase 7 (planned):** `venture_architect.subreddits`, `search_queries`
+10. **`config/targets.json`**
+    - `niche_name`, `niche_category` (Fermi multiplier)
+    - **Phase 7.3 (planned):** `venture_architect.subreddits`, `search_queries`
+
+11. **`config/settings.json`**
+    - **Phase 7:** `venture_architect.llm_provider`, `venture_architect.llm_model` — configurable LLM (e.g. gemini-2.5-flash)
+
+### Templates
+12. **`templates/venture_blueprint.j2`** *(NEW)*
+    - Jinja2 template for venture blueprint markdown (4 sections: System Map, Strategic Inversion, EPS, Trojan Horse)
 
 ### Test Files
-8. **`test_forensic.py`** — Forensic unit tests
-9. **`test_t024_integration.py`** — T-024 smoke test
+13. **`test_forensic.py`** — Forensic unit tests
+14. **`test_t024_integration.py`** — Phase 6 integration smoke test
+15. **`test_ai_client.py`** *(NEW)* — AIClient JSON parse, Pydantic validation
+16. **`test_venture_architect.py`** *(NEW)* — Blueprint generation, standardized JSON schema
 
 ### Dependencies
-10. **`requirements.txt`**
+17. **`requirements.txt`**
     - scikit-learn, apify-client, tenacity, python-dotenv
-    - **Phase 7 (planned):** google-generativeai, pydantic, jinja2
+    - **Phase 7:** google-generativeai, pydantic, jinja2
 
 ---
 
 ## 6. NEXT ACTIONS (When We Return)
 
-### Phase 7 Execution (Immediate Sprint)
-1. **T-025 (AI Client & Schemas):** Create `src/ai_client.py` + Pydantic models (`HolographicICP`, `SystemDynamicsMap`, `EPSPrescription`). Hard blocker for all Phase 7 work.
-2. **T-026 (Venture Architect Core):** Create `src/venture_architect.py` — 3-stage pipeline (ICP → SysMap → EPS).
-3. **T-027 (Blueprint Reporter):** Add `templates/venture_blueprint.j2` + `Reporter.render_venture_blueprint()`.
-4. **T-028 (Success Signal):** Add `--venture-architect` CLI flag; wire orchestration in `main.py`.
-5. **T-029 (Context Mocking):** Ensure Architect runs with `reddit_data=[]` for testing without Reddit.
+### Optional (Phase 7.3 — Reddit)
+1. **T-030 (Reddit Scraper):** Create `src/fetcher_reddit.py`; wire Apify `apify/reddit-scraper`; add `venture_architect.subreddits` to targets.json. NOT blocking — Architect works without Reddit.
 
 ### Validation
-6. **Run Full Pipeline**
+2. **Run Full Pipeline**
    ```bash
    source venv/bin/activate
-   python main.py   # Uses .env for APIFY_API_KEY
+   python main.py   # Uses .env for APIFY_API_KEY, GEMINI_API_KEY
    ```
 
-7. **Run with Venture Architect (when T-025-T-028 complete)**
+3. **Run with Venture Architect**
    ```bash
    python main.py --venture-architect --smoke-test
    ```
+
+4. **Change LLM Model:** Edit `config/settings.json` → `venture_architect.llm_model` (e.g. `gemini-2.5-flash`)
 
 ---
 
@@ -269,7 +287,7 @@
 ## 8. BLOCKERS & RISKS
 
 ### Current Blockers
-- **T-025 is hard blocker** — Phase 7 cannot start until `src/ai_client.py` exists
+- None. Phase 7.1–7.2 complete; T-030 (Reddit) is deferred.
 
 ### Resolved Issues
 - **ERROR C003 "Got no reviews"** ✅ RESOLVED (T-014)
@@ -277,6 +295,7 @@
 - **Hardcoded niche name** ✅ RESOLVED (T-016)
 - **Migration false positives** ✅ RESOLVED (T-018)
 - **APIFY_API_KEY not loading** ✅ RESOLVED (python-dotenv)
+- **T-025 Phase 7 blocker** ✅ RESOLVED (AI Client + Schemas implemented)
 
 ### Phase 7 Risks (Mitigation)
 - **R1 Hallucination:** Strict Pydantic schemas; fail loud on validation error
@@ -290,11 +309,14 @@
 ### Test Results
 - **test_forensic.py:** Forensic unit tests pass ✅
 - **test_t024_integration.py:** Phase 6 integration smoke test ✅
+- **test_ai_client.py:** AIClient + Pydantic validation ✅
+- **test_venture_architect.py:** Blueprint generation, standardized JSON schema ✅
 - **Config validation:** targets.json, pain_keywords.json, settings.json valid ✅
-- **Smoke test:** `python main.py --smoke-test`
+- **Smoke test:** `python main.py --smoke-test` ✅
+- **Venture Architect smoke:** `python main.py --venture-architect --smoke-test` ✅
 
 ### Recent Niche Runs
-- **ViralApps:** 5 apps — Revenue Leakage, Momentum labels, Financial Impact in reports
+- **ViralApps:** 5 apps — Revenue Leakage, Momentum labels, Financial Impact in reports; Venture Blueprint + System Map (Learna_English)
 - **Fasting Trackers:** Leaderboard with monthly_leakage_usd sort
 
 ### Docs
@@ -304,4 +326,4 @@
 
 ---
 
-**Status:** Phases 1-6 production-ready. Phase 7 designed; execution planned. Next: T-025 (AI Client).
+**Status:** Phases 1-6 production-ready. Phase 7.1–7.2 production-ready (Venture Architect live). Next: T-030 (Reddit) optional.

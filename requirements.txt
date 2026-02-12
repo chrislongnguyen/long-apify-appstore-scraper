@@ -20,3 +20,8 @@ python-dateutil>=2.8.0
 
 # JSON schema validation (optional but recommended)
 jsonschema>=4.17.0
+
+# Phase 7: Venture Architect (T-025)
+google-generativeai>=0.5.0
+pydantic>=2.0.0
+jinja2>=3.1.0

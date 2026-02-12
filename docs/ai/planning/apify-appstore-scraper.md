@@ -8,10 +8,10 @@ last_updated: 2026-02-11
 # QUICK STATUS SUMMARY
 
 **Current Phase:** Phase 7 — The Venture Architect  
-**Current Sprint:** Phase 7.1 (Core Intelligence) + 7.2 (Orchestration)  
-**Overall Progress:** Phases 1-6 Complete; Phase 7 In Execution  
-**Next Task:** T-025 (AI Client & Pydantic Schemas) — no deps, hard blocker for T-026  
-**Status:** ✅ Phases 1-6 Complete → 🚧 Phase 7 at 0%
+**Current Sprint:** Phase 7.2 (Orchestration)  
+**Overall Progress:** Phases 1-6 Complete; T-031 Done; Phase 7.1–7.2 Complete  
+**Next Task:** T-028 (Success Signal) or T-029 (Context Mocking)  
+**Status:** ✅ T-031 Done — Learna_English Risk Score 2.74 → 60.0 (Severity-First validated)
 
 **Recent Achievements (2026-02-11):**
 - ✅ Phase 6 Complete: T-020 to T-024 (Fermi, SlopeDelta, Named Spikes, Whale Detector, Reporter Integration)
@@ -80,6 +80,7 @@ last_updated: 2026-02-11
 | **T-022** | **Named Spike Correlation** | *Narratively* (Link anomalies to version metadata) | **Med (4)** | ✅ Done |
 | **T-023** | **Whale Detector Logic** | *Surgically* (40-word filter + domain-vocab multiplier) | **Low (2)** | ✅ Done |
 | **T-024** | **Predictive Integration** | *Holistically* (New metrics in main.py, Reporter, JSON) | **Med (5)** | ✅ Done |
+| **T-031** | **Risk Score Recalibration** | *Severity-First* (Fix false negative: scam/crash signals override improving trend) | **High (7)** | ✅ Done |
 
 ## PHASE 7: THE VENTURE ARCHITECT 🚧
 
@@ -91,9 +92,9 @@ last_updated: 2026-02-11
 
 | ID | Task (Verb) | Target Outcome (Adverb) | Risk Factor | Deps | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **T-025** | **Build AI Client & Schemas** | *Strictly* (Gemini wrapper + Pydantic models for 7-Node output) | **Med (5)** | None | 🚧 Next |
-| **T-026** | **Venture Architect Module** | *Systematically* (3-stage pipeline: ICP → SysMap → EPS) | **High (8)** | T-025 | ⏳ Blocked |
-| **T-027** | **Blueprint Reporter & Template** | *Beautifully* (Jinja2 template → venture_blueprint.md) | **Med (4)** | T-026 | ⏳ Blocked |
+| **T-025** | **Build AI Client & Schemas** | *Strictly* (Gemini wrapper + Pydantic models for 7-Node output) | **Med (5)** | None | ✅ Done |
+| **T-026** | **Venture Architect Module** | *Systematically* (3-stage pipeline: ICP → SysMap → EPS) | **High (8)** | T-025 | ✅ Done |
+| **T-027** | **Blueprint Reporter & Template** | *Beautifully* (Jinja2 template → venture_blueprint.md) | **Med (4)** | T-026 | ✅ Done |
 
 ### Phase 7.2: Orchestration & Data Plumbing — MUST HAVE
 *Goal: Connect the Scraper pipeline to the Architect.*
@@ -220,6 +221,19 @@ last_updated: 2026-02-11
 * **Acceptance Criteria:**
   * Individual and Niche reports show new metrics.
   * JSON artifacts are schema-complete.
+
+### T-031: Risk Score Recalibration — Severity-First Model ✅ Done
+
+* **User Story:** As a Founder, I need the Risk Score to never hide critical severity (Scams, Crashes) behind an "improving" trend. A negative slope must not erase red flags.
+* **Problem:** Smoke test (Learna_English) — Economic density 21.6%, slope -3 → Risk 2.74 (false negative). Scam/deceptive-pricing signals were suppressed.
+* **File:** `src/analyzer.py` — rewrite `calculate_risk_score`
+* **Formula (Severity-First):**
+  * `Risk = min(100.0, max(CalculatedRisk, CriticalFloor))`
+  * **BaseScore:** `(Functional×200) + (Economic×250) + (Experience×150)` — Economic weighted 2.5× vs UI
+  * **SlopeMultiplier:** If slope>0: `min(2.0, 1.0+slope)`; If slope≤0: `max(0.5, 1.0+(slope×0.1))` — dampen improvement, never erase
+  * **CriticalFloor:** Economic>0.1 → 60; Functional>0.15 → 50; else 0
+* **Reporter:** Updated `_generate_leaderboard_markdown` — "Layman's Terms" explanation; Critical Floor note.
+* **Acceptance Criteria:** ✅ Learna_English Risk Score 2.74 → 60.0 (validated).
 
 ---
 
@@ -524,9 +538,9 @@ T-025 (AI Client + Schemas) ←── HARD BLOCKER
     * Implement `_curate_evidence()` cluster summarizer (token budget control).
     * Smoke test on Fasting_Trackers niche.
 
-3.  **T-027 (Blueprint Reporter):** Create Jinja2 template + `Reporter.render_venture_blueprint()`.
-    * Add `jinja2` to `requirements.txt`.
-    * Verify Markdown renders cleanly in VS Code preview.
+3.  **T-027 (Blueprint Reporter):** ✅ Completed — Jinja2 template + `Reporter.render_venture_blueprint()` implemented.
+    * Added `jinja2` to `requirements.txt`.
+    * Verified generated Markdown blueprint artifacts render correctly.
 
 4.  **T-028 (Success Signal Integration):** Add `--venture-architect` CLI flag to `main.py`. Wire orchestration.
 
@@ -553,8 +567,8 @@ Day 4:  T-030 (Reddit — if time permits)
 - **Phase 1-3:** 100% ✅
 - **Phase 4:** 100% ✅ (T-008 Complete)
 - **Phase 5:** 100% ✅ (T-016 to T-019 Complete)
-- **Phase 6 (Predictive Analytics):** 100% ✅ (T-020 to T-024 Complete)
-- **Phase 7.1 (Core Intelligence):** 0% 🚧 (T-025, T-026, T-027 pending)
+- **Phase 6 (Predictive Analytics):** 100% ✅ (T-020 to T-024, T-031 Severity-First Complete)
+- **Phase 7.1 (Core Intelligence):** 100% ✅ (T-025 ✅, T-026 ✅, T-027 ✅)
 - **Phase 7.2 (Orchestration):** 0% 🚧 (T-028, T-029 pending)
 - **Phase 7.3 (Context Layer):** 0% ⏳ (T-030 — SHOULD HAVE, deferred to next sprint)
 
@@ -566,8 +580,9 @@ Day 4:  T-030 (Reddit — if time permits)
 | `src/intelligence.py` | Phase 4 | ✅ Production (ForensicAnalyzer) |
 | `src/reporter.py` | Phase 5 | ✅ Production (reports + leaderboard) |
 | `src/config_validator.py` | Phase 1 | ✅ Production |
-| `src/ai_client.py` | Phase 7.1 | 🚧 Not started |
-| `src/venture_architect.py` | Phase 7.1 | 🚧 Not started |
+| `src/ai_client.py` | Phase 7.1 | ✅ Done (T-025) |
+| `src/schemas.py` | Phase 7.1 | ✅ Done (T-025) |
+| `src/venture_architect.py` | Phase 7.1 | ✅ Done (T-026) |
 | `src/fetcher_reddit.py` | Phase 7.3 | ⏳ Deferred |
-| `templates/venture_blueprint.j2` | Phase 7.1 | 🚧 Not started |
+| `templates/venture_blueprint.j2` | Phase 7.1 | ✅ Done (T-027) |
 
