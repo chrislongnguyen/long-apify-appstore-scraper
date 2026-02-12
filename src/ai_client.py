@@ -84,7 +84,7 @@ class AIClient:
         response_schema: Optional[Dict] = None,
         response_model: Optional[Type[T]] = None,
         temperature: float = 0.3,
-        max_tokens: int = 4096,
+        max_tokens: int = 16384,
     ) -> Dict[str, Any]:
         """
         Send prompt and parse JSON response.
@@ -116,7 +116,18 @@ class AIClient:
         )
         def _call() -> str:
             raw = self._generate_raw(full_prompt, temperature, max_tokens, json_schema)
-            _ = self._parse_json_response(raw)  # Validate parseable
+            try:
+                _ = self._parse_json_response(raw)  # Validate parseable
+            except ValueError as e:
+                logger.warning(
+                    "Received non-parseable JSON from %s/%s (len=%d): %s | preview=%r",
+                    self.provider,
+                    self.model,
+                    len(raw),
+                    e,
+                    self._preview_text(raw),
+                )
+                raise
             return raw
 
         try:
@@ -186,19 +197,99 @@ class AIClient:
         return content.strip()
 
     def _parse_json_response(self, raw_text: str) -> Dict[str, Any]:
-        """Extract JSON from LLM response. Handles ```json fences."""
+        """Extract JSON from LLM response with robust fallbacks."""
         if not raw_text or not raw_text.strip():
             raise ValueError("Empty response")
 
         text = raw_text.strip()
 
-        # Strip markdown code fences
+        # Fast path: direct JSON
+        try:
+            data = json.loads(text)
+            if isinstance(data, dict):
+                return data
+            raise ValueError(f"Expected JSON object, got {type(data).__name__}")
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+        # Strip markdown code fences if present
         fence_pattern = r"^```(?:json)?\s*\n?(.*?)\n?```\s*$"
         match = re.search(fence_pattern, text, re.DOTALL)
         if match:
             text = match.group(1).strip()
 
         try:
-            return json.loads(text)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON: {e}") from e
+            data = json.loads(text)
+            if isinstance(data, dict):
+                return data
+            raise ValueError(f"Expected JSON object, got {type(data).__name__}")
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+        # Fallback 2: extract first balanced JSON object from noisy output.
+        json_candidate = self._extract_first_json_object(text)
+        if json_candidate:
+            try:
+                data = json.loads(json_candidate)
+                if isinstance(data, dict):
+                    return data
+                raise ValueError(f"Expected JSON object, got {type(data).__name__}")
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+        # Fallback 3 (aggressive): first '{' to last '}' — handles truncated preamble/postscript.
+        first_brace = text.find("{")
+        last_brace = text.rfind("}")
+        if first_brace != -1 and last_brace > first_brace:
+            aggressive = text[first_brace : last_brace + 1]
+            try:
+                data = json.loads(aggressive)
+                if isinstance(data, dict):
+                    logger.info("Parsed JSON via aggressive first-{-to-last-} strategy (len=%d)", len(aggressive))
+                    return data
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+        # All strategies exhausted — log raw response for debugging
+        logger.error(
+            "JSON Parse Failed after all strategies. Raw (truncated): %s",
+            text[:500] + ("..." if len(text) > 500 else ""),
+        )
+        raise ValueError("Invalid JSON after all parsing strategies")
+
+    def _extract_first_json_object(self, text: str) -> Optional[str]:
+        """Return the first balanced JSON object in text, or None."""
+        start = text.find("{")
+        if start == -1:
+            return None
+
+        depth = 0
+        in_string = False
+        escape = False
+        for i in range(start, len(text)):
+            ch = text[i]
+            if in_string:
+                if escape:
+                    escape = False
+                elif ch == "\\":
+                    escape = True
+                elif ch == '"':
+                    in_string = False
+                continue
+
+            if ch == '"':
+                in_string = True
+                continue
+            if ch == "{":
+                depth += 1
+                continue
+            if ch == "}":
+                depth -= 1
+                if depth == 0:
+                    return text[start : i + 1]
+
+        return None
+
+    def _preview_text(self, text: str, max_len: int = 280) -> str:
+        """Compact one-line preview for safe debug logs."""
+        return re.sub(r"\s+", " ", text).strip()[:max_len]

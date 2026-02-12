@@ -42,7 +42,10 @@ OUTPUT: Respond with a single JSON object matching this exact schema:
 {who, why_udo, what_how_workflow, when_trigger, alternatives,
  icp_segment, pain_success_paradox}
 
-The "who" field must be a dict with keys like demographic, psychographic."""
+The "who" field must be a dict with keys like demographic, psychographic.
+
+IMPORTANT: Output ONLY valid JSON. No preamble, no explanation, no markdown.
+All string values must be plain text (no nested objects where strings are expected)."""
 
 SYSTEM_DYNAMICS_PROMPT = """You are an Evolutionary Biologist and Behavioral Systems Architect.
 
@@ -75,7 +78,11 @@ OUTPUT: Respond with a single JSON object matching this exact schema:
 {udo, uds, uds_ud, uds_ub, ubs, ubs_ud, ubs_ub, incumbent_failure, depth_layers}
 
 Each of uds, uds_ud, uds_ub, ubs, ubs_ud, ubs_ub must have: label, evidence (list of strings), layer.
-The udo must have: statement, adverb, noun."""
+The udo must have: statement, adverb, noun.
+The depth_layers must be a dict (not a list).
+
+IMPORTANT: Output ONLY valid JSON. No preamble, no explanation, no markdown.
+All string values must be plain text (no nested objects where strings are expected)."""
 
 EPS_SYSTEM_PROMPT = """You are a Product Architect and Strategic Inverter.
 
@@ -100,9 +107,16 @@ THE STRATEGIC INVERSION TABLE:
 For each major incumbent method, show:
   [Incumbent Method] → [Root Cause Node] → [New Principle]
 
+THE TROJAN HORSE:
+  Keys: "level_1_desirable" (The Hook/Marketing Promise — what the user THINKS they're getting),
+        "level_5_effective" (The Cure/Biological Mechanism — what actually fixes the root cause).
+  Content MUST be two different strings.
+
 OUTPUT: Respond with a single JSON object matching this exact schema:
 {principles, environment, tools, sop, trojan_horse, strategic_inversion_table}
 
+IMPORTANT: Output ONLY valid JSON. No preamble, no explanation, no markdown.
+All string values must be plain text (no nested objects where strings are expected).
 Principles must have: id, name, strategy, node_ref, rationale. Include at least 4 principles."""
 
 
@@ -205,23 +219,73 @@ class VentureArchitect:
     def _repair_icp_response(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Coerce common LLM output mistakes to match HolographicICP schema."""
         out = dict(data)
+        # why_udo / when_trigger must be strings (LLM sometimes returns dict/list)
+        for key in ("why_udo", "when_trigger"):
+            val = out.get(key)
+            if isinstance(val, dict):
+                # Preserve useful detail in a deterministic flat sentence.
+                parts = []
+                for k, v in val.items():
+                    if isinstance(v, list):
+                        vv = ", ".join(str(x) for x in v if x is not None)
+                    else:
+                        vv = str(v)
+                    if vv and vv.strip():
+                        parts.append(f"{k}: {vv}")
+                out[key] = " | ".join(parts) if parts else ""
+            elif isinstance(val, list):
+                out[key] = " | ".join(str(x) for x in val if x is not None)
+            elif val is None:
+                out[key] = ""
+            elif not isinstance(val, str):
+                out[key] = str(val)
         # what_how_workflow must be list
         w = out.get("what_how_workflow")
         if isinstance(w, str):
             out["what_how_workflow"] = [s.strip() for s in w.split("\n") if s.strip()] or [w]
         elif not isinstance(w, list):
             out["what_how_workflow"] = []
+        # alternatives must be list (LLM often returns string)
+        alt = out.get("alternatives")
+        if isinstance(alt, str):
+            out["alternatives"] = [s.strip() for s in alt.replace("\n", ",").split(",") if s.strip()] or [alt]
+        elif not isinstance(alt, list):
+            out["alternatives"] = []
         # icp_segment must be dict
         seg = out.get("icp_segment")
         if isinstance(seg, str):
             out["icp_segment"] = {"primary": seg, "secondary": seg, "whale_segment": seg}
         elif not isinstance(seg, dict):
             out["icp_segment"] = {"primary": "", "secondary": "", "whale_segment": ""}
-        # pain_success_paradox must be dict
+        # pain_success_paradox must be dict with pain_says, success_says, inference
         psp = out.get("pain_success_paradox")
         if isinstance(psp, str):
             out["pain_success_paradox"] = {"pain_says": psp, "success_says": "", "inference": psp}
-        elif not isinstance(psp, dict):
+        elif isinstance(psp, dict):
+            pain_says = psp.get("pain_says") or psp.get("pain_complains") or psp.get("pain") or ""
+            success_says = psp.get("success_says") or psp.get("success_loves") or psp.get("success") or ""
+            inference = (
+                psp.get("inference")
+                or psp.get("paradox")
+                or psp.get("paradox_identified")
+                or psp.get("reconciliation")
+                or psp.get("pricing_model")
+                or ""
+            )
+            if isinstance(inference, dict):
+                inference = inference.get("paradox", inference.get("inference", "")) or str(inference)
+            # Fallback: use any string value if schema fields missing (LLM uses custom keys)
+            if not inference and not pain_says and not success_says:
+                for v in psp.values():
+                    if isinstance(v, str) and len(v) > 10:
+                        inference = v
+                        break
+            out["pain_success_paradox"] = {
+                "pain_says": str(pain_says) if pain_says else "",
+                "success_says": str(success_says) if success_says else "",
+                "inference": str(inference) if inference else "",
+            }
+        else:
             out["pain_success_paradox"] = {"pain_says": "", "success_says": "", "inference": ""}
         return out
 
@@ -230,6 +294,12 @@ class VentureArchitect:
         LAYER_NAMES = {1: "Layer 1 (App)", 2: "Layer 2 (Behavior)", 3: "Layer 3 (System)",
                        4: "Layer 4 (Psychology)", 5: "Layer 5 (Biology)"}
         out = dict(data)
+        # depth_layers: schema expects Dict, LLM often returns list
+        dl = out.get("depth_layers")
+        if isinstance(dl, list):
+            out["depth_layers"] = {str(i + 1): (x if isinstance(x, str) else str(x)) for i, x in enumerate(dl)}
+        elif not isinstance(dl, dict):
+            out["depth_layers"] = {}
         for key in ("udo", "uds", "uds_ud", "uds_ub", "ubs", "ubs_ud", "ubs_ub"):
             node = out.get(key)
             if isinstance(node, dict):
@@ -245,11 +315,22 @@ class VentureArchitect:
     def _repair_eps_response(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Coerce common LLM output mistakes to match EPSPrescription schema."""
         out = dict(data)
-        # trojan_horse must be dict
+        # trojan_horse must be dict with level_1_desirable and level_5_effective
         th = out.get("trojan_horse")
         if isinstance(th, str):
-            out["trojan_horse"] = {"level_1_desirable": th, "level_5_effective": th}
-        elif not isinstance(th, dict):
+            out["trojan_horse"] = {"level_1_desirable": th, "level_5_effective": "See Level 1"}
+        elif isinstance(th, dict):
+            l1 = th.get("level_1_desirable") or th.get("level_1") or th.get("hook") or th.get("desirable") or ""
+            l5 = th.get("level_5_effective") or th.get("level_5") or th.get("cure") or th.get("effective") or ""
+            if not l1 and not l5:
+                # Grab any string values as fallback
+                vals = [v for v in th.values() if isinstance(v, str) and len(v) > 5]
+                l1 = vals[0] if len(vals) > 0 else ""
+                l5 = vals[1] if len(vals) > 1 else "See Level 1"
+            out["trojan_horse"] = {"level_1_desirable": str(l1), "level_5_effective": str(l5) or "See Level 1"}
+        elif isinstance(th, list) and len(th) >= 2:
+            out["trojan_horse"] = {"level_1_desirable": str(th[0]), "level_5_effective": str(th[1])}
+        else:
             out["trojan_horse"] = {"level_1_desirable": "", "level_5_effective": ""}
         # principles must be list of dicts
         p = out.get("principles")
@@ -269,6 +350,45 @@ class VentureArchitect:
         if not isinstance(sit, list):
             out["strategic_inversion_table"] = []
         return out
+
+    # --- Empty fallback objects for graceful degradation ---
+
+    @staticmethod
+    def _empty_icp() -> Dict[str, Any]:
+        """Return a valid-but-empty HolographicICP dict."""
+        return {
+            "who": {"demographic": "Unknown", "psychographic": "Unknown"},
+            "why_udo": "LLM stage failed — no ICP generated",
+            "what_how_workflow": [],
+            "when_trigger": "Unknown",
+            "alternatives": [],
+            "icp_segment": {"primary": "Error", "secondary": "Error", "whale_segment": "Error"},
+            "pain_success_paradox": {"pain_says": "", "success_says": "", "inference": "Stage 1 failed"},
+        }
+
+    @staticmethod
+    def _empty_system_map() -> Dict[str, Any]:
+        """Return a valid-but-empty SystemDynamicsMap dict."""
+        empty_node = {"label": "Unknown", "evidence": [], "layer": "Unknown"}
+        return {
+            "udo": {"statement": "Unknown", "adverb": "Unknown", "noun": "Unknown"},
+            "uds": dict(empty_node), "uds_ud": dict(empty_node), "uds_ub": dict(empty_node),
+            "ubs": dict(empty_node), "ubs_ud": dict(empty_node), "ubs_ub": dict(empty_node),
+            "incumbent_failure": "LLM stage failed — no system map generated",
+            "depth_layers": {},
+        }
+
+    @staticmethod
+    def _empty_eps() -> Dict[str, Any]:
+        """Return a valid-but-empty EPSPrescription dict."""
+        return {
+            "principles": [],
+            "environment": {"form_factor": "Unknown", "rationale": "Stage 3 failed", "anti_pattern": ""},
+            "tools": {"desirable_wrapper": "Unknown", "effective_core": "Unknown"},
+            "sop": [],
+            "trojan_horse": {"level_1_desirable": "Unknown", "level_5_effective": "Unknown"},
+            "strategic_inversion_table": [],
+        }
 
     def _summarize_analysis_signals(self, analysis: Dict) -> str:
         """Summarize analysis.signals for ICP prompt."""
@@ -420,17 +540,29 @@ Produce the EPS Prescription JSON for app "{app_name}". Include at least 4 princ
             logger.warning("No Reddit data — running Architect on App Store signals only.")
 
         # Stage 1
-        icp = self.construct_holographic_icp(
-            pain_reviews, success_reviews, reddit_data, analysis, app_name,
-        )
+        try:
+            icp = self.construct_holographic_icp(
+                pain_reviews, success_reviews, reddit_data, analysis, app_name,
+            )
+        except Exception as e:
+            logger.error("[%s] Stage 1 (ICP) failed: %s", app_name, e)
+            icp = self._empty_icp()
 
         # Stage 2
-        system_map = self.map_system_dynamics(
-            icp, pain_reviews, success_reviews, analysis, app_name,
-        )
+        try:
+            system_map = self.map_system_dynamics(
+                icp, pain_reviews, success_reviews, analysis, app_name,
+            )
+        except Exception as e:
+            logger.error("[%s] Stage 2 (System Map) failed: %s", app_name, e)
+            system_map = self._empty_system_map()
 
         # Stage 3
-        eps = self.generate_eps_prescription(system_map, icp, app_name)
+        try:
+            eps = self.generate_eps_prescription(system_map, icp, app_name)
+        except Exception as e:
+            logger.error("[%s] Stage 3 (EPS) failed: %s", app_name, e)
+            eps = self._empty_eps()
 
         # Save JSON
         app_safe = app_name.replace(" ", "_").lower()

@@ -1,7 +1,7 @@
 # PROJECT HANDOFF STATUS
 
 **Generated:** 2026-02-12  
-**Session Focus:** Phase 7.1 Complete; Venture Architect Live; Phase 7.2 Orchestration Done
+**Session Focus:** Phase 7.1–7.2 Complete; Venture Architect Production-Ready; LLM Parser Hardened
 
 ---
 
@@ -22,6 +22,12 @@
 - ✅ **T-029:** Context Mocking — Architect runs with `reddit_data=[]`; graceful degradation, no Reddit required
 - ✅ **Config:** `config/settings.json` `venture_architect.llm_model` / `llm_provider` — switch model (e.g. `gemini-2.5-flash`) without code change
 - ✅ **Standardized JSON:** System Map payload uses `app_name`, `generated_at`, `system_dynamics`, `eps_prescription`
+- ✅ **LLM Parser Hardening:** 4-strategy JSON parse (direct → fence → balanced brace → aggressive first/last); max_tokens 4096→16384; truncated raw-response logging on failure
+- ✅ **Stage Safety Net:** Each Venture Architect stage wrapped in try/except; returns valid empty schema on failure; batch never crashes
+- ✅ **ICP Repair:** `when_trigger`, `why_udo` dict→string coercion; `alternatives` string→list; `pain_success_paradox` key normalization
+- ✅ **System Map Repair:** `depth_layers` list→dict coercion; integer layer→string coercion
+- ✅ **Trojan Horse Repair:** Prompt hardening ("level_1_desirable" / "level_5_effective" must differ); flexible key mapping in repair
+- ✅ **First Successful Run:** `Opal_Screen_Time` venture blueprint + system map generated via `gemini-2.5-flash`
 
 ---
 
@@ -184,6 +190,8 @@
 2. **`src/ai_client.py`** *(NEW)*
    - Gemini/OpenAI wrapper; `generate_structured()` with tenacity retry; JSON parse + Pydantic validation
    - Model configurable via `settings.json` → `venture_architect.llm_model`
+   - **Hardened parser:** 4-strategy fallback (direct → fence → balanced brace → aggressive first/last `{}`); max_tokens 16384
+   - **Debug logging:** Truncated raw response logged on parse failure for diagnostics
 
 3. **`src/schemas.py`** *(NEW)*
    - Pydantic models: `HolographicICP`, `SystemDynamicsMap`, `EPSPrescription`, `ICPSegment`, etc.
@@ -191,6 +199,10 @@
 4. **`src/venture_architect.py`** *(NEW)*
    - 3-stage pipeline: `construct_holographic_icp` → `map_system_dynamics` → `generate_eps_prescription`
    - Repair logic for LLM output; `generate_blueprint()` saves JSON + invokes Reporter for blueprint MD
+   - **Stage safety net:** try/except per stage → `_empty_icp()` / `_empty_system_map()` / `_empty_eps()` on failure; batch never crashes
+   - **ICP repair:** `when_trigger`/`why_udo` dict→str; `alternatives` str→list; `pain_success_paradox` key normalization
+   - **System Map repair:** `depth_layers` list→dict; integer layer→string
+   - **EPS repair:** `trojan_horse` flexible key mapping; prompt hardened for JSON-only output
 
 5. **`src/reporter.py`**
    - **Phase 7:** `render_venture_blueprint()` — Jinja2 template for venture_blueprint_{app}.md
@@ -229,7 +241,7 @@
 13. **`test_forensic.py`** — Forensic unit tests
 14. **`test_t024_integration.py`** — Phase 6 integration smoke test
 15. **`test_ai_client.py`** *(NEW)* — AIClient JSON parse, Pydantic validation
-16. **`test_venture_architect.py`** *(NEW)* — Blueprint generation, standardized JSON schema
+16. **`test_venture_architect.py`** *(NEW)* — Blueprint generation, standardized JSON schema, LLM repair regression tests (depth_layers, when_trigger, alternatives, pain_success_paradox)
 
 ### Dependencies
 17. **`requirements.txt`**
@@ -296,11 +308,16 @@
 - **Migration false positives** ✅ RESOLVED (T-018)
 - **APIFY_API_KEY not loading** ✅ RESOLVED (python-dotenv)
 - **T-025 Phase 7 blocker** ✅ RESOLVED (AI Client + Schemas implemented)
+- **Gemini truncated JSON** ✅ RESOLVED — 4-strategy parser fallback; max_tokens raised to 16384
+- **Pydantic validation crashes** ✅ RESOLVED — ICP/SystemMap/EPS repair logic handles dict/list/string coercion
+- **Venture Architect batch crash** ✅ RESOLVED — Stage-level try/except; empty-schema fallbacks; batch always completes
+- **`google.generativeai` deprecation** ⚠️ WARNING — FutureWarning; migration to `google.genai` is optional (tracked, not blocking)
 
 ### Phase 7 Risks (Mitigation)
 - **R1 Hallucination:** Strict Pydantic schemas; fail loud on validation error
 - **R2 Token Cost:** Cluster Summarizer caps evidence at ~3000 tokens/stage
 - **R3 Shallow Analysis:** Depth validation — assert UDS.UD/UBS.UD reach Layer 5
+- **R4 Truncated LLM Output:** max_tokens 16384; 4-strategy parser; stage safety net with empty fallbacks
 
 ---
 
@@ -316,6 +333,7 @@
 - **Venture Architect smoke:** `python main.py --venture-architect --smoke-test` ✅
 
 ### Recent Niche Runs
+- **Opal_Screen_Time:** 1 app — Venture Blueprint + System Map generated via `gemini-2.5-flash` (first successful end-to-end run)
 - **ViralApps:** 5 apps — Revenue Leakage, Momentum labels, Financial Impact in reports; Venture Blueprint + System Map (Learna_English)
 - **Fasting Trackers:** Leaderboard with monthly_leakage_usd sort
 
@@ -326,4 +344,4 @@
 
 ---
 
-**Status:** Phases 1-6 production-ready. Phase 7.1–7.2 production-ready (Venture Architect live). Next: T-030 (Reddit) optional.
+**Status:** Phases 1-6 production-ready. Phase 7.1–7.2 production-ready (Venture Architect live, parser hardened, stage safety net active). Next: T-030 (Reddit) optional.

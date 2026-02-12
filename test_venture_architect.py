@@ -5,8 +5,9 @@ import sys
 import tempfile
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent))
 
+from src.schemas import HolographicICP, SystemDynamicsMap
 from src.venture_architect import VentureArchitect
 
 
@@ -131,6 +132,75 @@ def test_generate_blueprint_outputs():
     print("✓ PASS: T-026/T-027 blueprint generation and schema standardization")
 
 
+def test_repair_malformed_llm_outputs():
+    """Verify repair logic handles real-world LLM schema violations (T-031 follow-up)."""
+    va = VentureArchitect(ai_client=MockAIClient(), settings={})
+
+    # Opal_Screen_Time error: depth_layers was list instead of dict
+    system_map_bad = {
+        "udo": {"statement": "X", "adverb": "A", "noun": "N"},
+        "uds": {"label": "L", "evidence": ["e"], "layer": "Layer 1 (App)"},
+        "uds_ud": {"label": "L", "evidence": ["e"], "layer": "Layer 5 (Biology)"},
+        "uds_ub": {"label": "L", "evidence": ["e"], "layer": "Layer 4 (Psychology)"},
+        "ubs": {"label": "L", "evidence": ["e"], "layer": "Layer 2 (Behavior)"},
+        "ubs_ud": {"label": "L", "evidence": ["e"], "layer": "Layer 5 (Biology)"},
+        "ubs_ub": {"label": "L", "evidence": ["e"], "layer": "Layer 4 (Psychology)"},
+        "incumbent_failure": "Fails at Layer 3.",
+        "depth_layers": ["Layer 1: App (Interface..., Energy Conservation)"],  # list, not dict
+    }
+    repaired = va._repair_system_map_response(system_map_bad)
+    assert isinstance(repaired["depth_layers"], dict), "depth_layers must be dict"
+    validated = SystemDynamicsMap.model_validate(repaired)
+    assert validated.depth_layers["1"] == "Layer 1: App (Interface..., Energy Conservation)"
+
+    # Forest_Focus_App error: alternatives string, pain_success_paradox wrong keys
+    icp_bad = {
+        "who": {"demographic": "25-40", "psychographic": "fitness"},
+        "why_udo": "Metabolic control",
+        "what_how_workflow": ["Open", "Track"],
+        "when_trigger": "Morning",
+        "alternatives": "Other Pomodoro timers, manual tracking, spreadsheet. Different subscription model.",  # string
+        "icp_segment": {"primary": "P", "secondary": "S", "whale_segment": "W"},
+        "pain_success_paradox": {  # wrong keys
+            "pricing_model": "Pain users complain about price. Success loves the depth.",
+            "paradox_identified": "Split segment on willingness to pay.",
+        },
+    }
+    repaired_icp = va._repair_icp_response(icp_bad)
+    assert isinstance(repaired_icp["alternatives"], list), "alternatives must be list"
+    assert repaired_icp["pain_success_paradox"]["inference"], "inference must be populated from paradox keys"
+    validated_icp = HolographicICP.model_validate(repaired_icp)
+    assert len(validated_icp.alternatives) >= 1
+
+    print("✓ PASS: Repair logic handles malformed LLM outputs")
+
+
+def test_repair_when_trigger_dict_to_string():
+    """Regression: when_trigger can arrive as dict; coerce to string for schema."""
+    va = VentureArchitect(ai_client=MockAIClient(), settings={})
+    icp_bad = {
+        "who": {"demographic": "18-35", "psychographic": "focus-improvers"},
+        "why_udo": {"core_goal": "regain agency", "state": "calm"},
+        "what_how_workflow": ["Notice distraction", "Open app"],
+        "when_trigger": {
+            "internal_triggers": "Anxiety spikes after doomscrolling",
+            "external_triggers": ["Bedtime", "Work breaks"],
+        },
+        "alternatives": ["Notes app"],
+        "icp_segment": {"primary": "Students", "secondary": "Professionals", "whale_segment": "Executives"},
+        "pain_success_paradox": {"pain_says": "Too strict", "success_says": "Needs stricter mode", "inference": "Segment split"},
+    }
+    repaired = va._repair_icp_response(icp_bad)
+    assert isinstance(repaired["when_trigger"], str), "when_trigger must be string after repair"
+    assert "internal_triggers" in repaired["when_trigger"]
+    validated = HolographicICP.model_validate(repaired)
+    assert isinstance(validated.when_trigger, str)
+    assert isinstance(validated.why_udo, str)
+    print("✓ PASS: when_trigger dict repair")
+
+
 if __name__ == "__main__":
     test_generate_blueprint_outputs()
+    test_repair_malformed_llm_outputs()
+    test_repair_when_trigger_dict_to_string()
     print("\n✓ All venture architect tests passed")
